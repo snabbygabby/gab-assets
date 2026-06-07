@@ -22,7 +22,7 @@
       "travelersLabel": "Gabby + Griffin",
       "days": [
         {
-          "id": "2025-07-09",
+          "id": "2026-07-09",
           "num": "09",
           "weekday": "Wednesday",
           "label": "July 9 · Arrival Day",
@@ -51,7 +51,7 @@
           ]
         },
         {
-          "id": "2025-07-10",
+          "id": "2026-07-10",
           "num": "10",
           "weekday": "Thursday",
           "label": "July 10 · Lausanne",
@@ -62,7 +62,7 @@
           "events": []
         },
         {
-          "id": "2025-07-11",
+          "id": "2026-07-11",
           "num": "11",
           "weekday": "Friday",
           "label": "July 11 · Lausanne",
@@ -73,7 +73,7 @@
           "events": []
         },
         {
-          "id": "2025-07-12",
+          "id": "2026-07-12",
           "num": "12",
           "weekday": "Saturday",
           "label": "July 12 · Last Evening in Lausanne",
@@ -84,7 +84,7 @@
           "events": []
         },
         {
-          "id": "2025-07-13",
+          "id": "2026-07-13",
           "num": "13",
           "weekday": "Sunday",
           "label": "July 13 · Travel Day — Lausanne → Nice",
@@ -125,11 +125,11 @@
       "arriveLabel": "Sunday, July 13",
       "departLabel": "Tuesday, July 22",
       "travelersLabel": "Gabby + Griffin",
-      "joinDate": "2025-07-18",
+      "joinDate": "2026-07-18",
       "joinTravelersLabel": "Friday, July 18",
       "days": [
         {
-          "id": "2025-07-13-nice",
+          "id": "2026-07-13-nice",
           "num": "13",
           "weekday": "Sunday",
           "label": "July 13 · Arrive in Nice",
@@ -140,7 +140,7 @@
           "events": []
         },
         {
-          "id": "2025-07-14",
+          "id": "2026-07-14",
           "num": "14",
           "weekday": "Monday",
           "label": "July 14 · Fête Nationale",
@@ -169,7 +169,7 @@
           ]
         },
         {
-          "id": "2025-07-15",
+          "id": "2026-07-15",
           "num": "15",
           "weekday": "Tuesday",
           "label": "July 15 · Nice",
@@ -180,7 +180,7 @@
           "events": []
         },
         {
-          "id": "2025-07-16",
+          "id": "2026-07-16",
           "num": "16",
           "weekday": "Wednesday",
           "label": "July 16 · Nice",
@@ -191,7 +191,7 @@
           "events": []
         },
         {
-          "id": "2025-07-17",
+          "id": "2026-07-17",
           "num": "17",
           "weekday": "Thursday",
           "label": "July 17 · Nice",
@@ -202,7 +202,7 @@
           "events": []
         },
         {
-          "id": "2025-07-18",
+          "id": "2026-07-18",
           "num": "18",
           "weekday": "Friday",
           "label": "July 18 · The Whole Crew Is Here",
@@ -213,7 +213,7 @@
           "events": []
         },
         {
-          "id": "2025-07-19",
+          "id": "2026-07-19",
           "num": "19",
           "weekday": "Saturday",
           "label": "July 19 · Nice · All Together",
@@ -224,7 +224,7 @@
           "events": []
         },
         {
-          "id": "2025-07-20",
+          "id": "2026-07-20",
           "num": "20",
           "weekday": "Sunday",
           "label": "July 20 · Nice · All Together",
@@ -235,7 +235,7 @@
           "events": []
         },
         {
-          "id": "2025-07-21",
+          "id": "2026-07-21",
           "num": "21",
           "weekday": "Monday",
           "label": "July 21 · Last Night on the Riviera",
@@ -246,7 +246,7 @@
           "events": []
         },
         {
-          "id": "2025-07-22",
+          "id": "2026-07-22",
           "num": "22",
           "weekday": "Tuesday",
           "label": "July 22 · Fly Home · All Travelers",
