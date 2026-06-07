@@ -1,0 +1,276 @@
+{
+  "meta": {
+    "title": "Switzerland & Côte d'Azur",
+    "subtitle": "July 9 – 22, 2025",
+    "travelers": ["Gabby", "Griffin", "Olivia", "Anna"]
+  },
+  "destinations": [
+    {
+      "id": "lausanne",
+      "city": "Lausanne",
+      "country": "Switzerland",
+      "eyebrow": "First Stop · Switzerland",
+      "heroImage": "https://images.unsplash.com/photo-1531210483974-4f8c1f33fd35?w=1600&h=600&fit=crop&auto=format&q=85",
+      "heroAlt": "Lake Geneva, Switzerland",
+      "accommodation": {
+        "address": "Av. Montagibert #2 20, 1005 Lausanne, Switzerland",
+        "appleMaps": "https://maps.apple.com/?address=Avenue+Montagibert+20,+1005+Lausanne,+Switzerland",
+        "googleMaps": "https://www.google.com/maps/search/Avenue+Montagibert+20,+1005+Lausanne,+Switzerland"
+      },
+      "arriveLabel": "Wednesday, July 9",
+      "departLabel": "Sunday, July 13",
+      "travelersLabel": "Gabby + Griffin",
+      "days": [
+        {
+          "id": "2025-07-09",
+          "num": "09",
+          "weekday": "Wednesday",
+          "label": "July 9 · Arrival Day",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": [
+            {
+              "id": "arrive-lausanne",
+              "type": "accommodation",
+              "category": "Accommodation · Arrival",
+              "name": "Arrive in Lausanne",
+              "subtitle": "Check into the apartment on Av. Montagibert.",
+              "time": null,
+              "timeLabel": null,
+              "address": "Av. Montagibert #2 20, 1005 Lausanne, Switzerland",
+              "appleMaps": "https://maps.apple.com/?address=Avenue+Montagibert+20,+1005+Lausanne,+Switzerland",
+              "googleMaps": "https://www.google.com/maps/search/Avenue+Montagibert+20+Lausanne",
+              "website": null,
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
+            }
+          ]
+        },
+        {
+          "id": "2025-07-10",
+          "num": "10",
+          "weekday": "Thursday",
+          "label": "July 10 · Lausanne",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-11",
+          "num": "11",
+          "weekday": "Friday",
+          "label": "July 11 · Lausanne",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-12",
+          "num": "12",
+          "weekday": "Saturday",
+          "label": "July 12 · Last Evening in Lausanne",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-13",
+          "num": "13",
+          "weekday": "Sunday",
+          "label": "July 13 · Travel Day — Lausanne → Nice",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": [
+            {
+              "id": "flight-lausanne-nice",
+              "type": "flight",
+              "category": "Flight · Gabby + Griffin",
+              "fromIATA": "GVA",
+              "fromCity": "Geneva",
+              "toIATA": "NCE",
+              "toCity": "Nice",
+              "time": null,
+              "flightNumber": null,
+              "confirmationNumber": null,
+              "notes": "Flight details to be added"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nice",
+      "city": "Nice",
+      "country": "France",
+      "eyebrow": "Second Stop · France",
+      "heroImage": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1600&h=600&fit=crop&auto=format&q=85",
+      "heroAlt": "Nice, French Riviera",
+      "accommodation": {
+        "address": "14 Rue de Massingy, Etage 4, 06000 Nice, France",
+        "appleMaps": "https://maps.apple.com/?address=14+Rue+de+Massingy,+06000+Nice,+France",
+        "googleMaps": "https://www.google.com/maps/search/14+Rue+de+Massingy+06000+Nice+France"
+      },
+      "arriveLabel": "Sunday, July 13",
+      "departLabel": "Tuesday, July 22",
+      "travelersLabel": "Gabby + Griffin",
+      "joinDate": "2025-07-18",
+      "joinTravelersLabel": "Friday, July 18",
+      "days": [
+        {
+          "id": "2025-07-13-nice",
+          "num": "13",
+          "weekday": "Sunday",
+          "label": "July 13 · Arrive in Nice",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-14",
+          "num": "14",
+          "weekday": "Monday",
+          "label": "July 14 · Fête Nationale",
+          "badge": { "text": "🇫🇷 Bastille Day", "color": "#BF3B3B" },
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": [
+            {
+              "id": "bastille-fireworks",
+              "type": "highlight",
+              "category": "Holiday Highlight",
+              "name": "Bastille Day Fireworks",
+              "subtitle": "France's most spectacular national celebration — fireworks launched from the Baie des Anges every July 14th.",
+              "time": "22:00",
+              "timeLabel": "Fireworks begin ~10:00 pm",
+              "address": "Promenade des Anglais, 06000 Nice, France",
+              "appleMaps": "https://maps.apple.com/?address=Promenade+des+Anglais,+06000+Nice,+France",
+              "googleMaps": "https://www.google.com/maps/search/Promenade+des+Anglais+Nice+France",
+              "website": null,
+              "menu": null,
+              "photo": "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?w=600&h=300&fit=crop&auto=format&q=80",
+              "confirmationNumber": null,
+              "notes": null
+            }
+          ]
+        },
+        {
+          "id": "2025-07-15",
+          "num": "15",
+          "weekday": "Tuesday",
+          "label": "July 15 · Nice",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-16",
+          "num": "16",
+          "weekday": "Wednesday",
+          "label": "July 16 · Nice",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-17",
+          "num": "17",
+          "weekday": "Thursday",
+          "label": "July 17 · Nice",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-18",
+          "num": "18",
+          "weekday": "Friday",
+          "label": "July 18 · The Whole Crew Is Here",
+          "badge": null,
+          "join": true,
+          "joinTitle": "Olivia & Anna arrive in Nice",
+          "joinSub": "All four travelers together on the Riviera through July 22",
+          "events": []
+        },
+        {
+          "id": "2025-07-19",
+          "num": "19",
+          "weekday": "Saturday",
+          "label": "July 19 · Nice · All Together",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-20",
+          "num": "20",
+          "weekday": "Sunday",
+          "label": "July 20 · Nice · All Together",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-21",
+          "num": "21",
+          "weekday": "Monday",
+          "label": "July 21 · Last Night on the Riviera",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": []
+        },
+        {
+          "id": "2025-07-22",
+          "num": "22",
+          "weekday": "Tuesday",
+          "label": "July 22 · Fly Home · All Travelers",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": [
+            {
+              "id": "flight-home",
+              "type": "flight",
+              "category": "Departure · All Four Travelers",
+              "fromIATA": "NCE",
+              "fromCity": "Nice",
+              "toIATA": "???",
+              "toCity": "Home",
+              "time": null,
+              "flightNumber": null,
+              "confirmationNumber": null,
+              "notes": "All four travelers depart"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
