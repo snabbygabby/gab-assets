@@ -377,6 +377,10 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
   <button class="nav-settings" onclick="openSettings()" title="Settings">⚙</button>
 </nav>
 
+<div id="token-warn" style="display:none;background:#BF3B3B;color:#fff;text-align:center;padding:9px 20px;font-size:12px;font-weight:500;position:sticky;top:46px;z-index:199;cursor:pointer;letter-spacing:.02em" onclick="openSettings()">
+  ⚠ GitHub token expired — tap here to paste a new one so changes can save
+</div>
+
 <main id="main"><div style="text-align:center;padding:80px 40px;font-size:13px;color:var(--ink-60)">Loading itinerary…</div></main>
 
 <footer>
@@ -540,7 +544,7 @@ let dragWish=null;
 
 // TOKEN
 function getToken(){return localStorage.getItem('gh-pat');}
-function saveToken(){const v=document.getElementById('s-token').value.trim();if(!v)return showToast('Paste a token first',true);localStorage.setItem('gh-pat',v);showToast('Token saved ✓');closeModal('settings-overlay');}
+function saveToken(){const v=document.getElementById('s-token').value.trim();if(!v)return showToast('Paste a token first',true);localStorage.setItem('gh-pat',v);document.getElementById('token-warn').style.display='none';showToast('Token saved ✓');closeModal('settings-overlay');}
 function clearToken(){localStorage.removeItem('gh-pat');document.getElementById('s-token').value='';showToast('Token cleared');}
 function openSettings(){const t=getToken();if(t)document.getElementById('s-token').value=t;document.getElementById('settings-overlay').classList.add('open');}
 
@@ -1099,6 +1103,15 @@ function catEmoji(t){return{restaurant:'🍽',activity:'🌊',accommodation:'�
 
 // INIT
 loadData().catch(err=>{document.getElementById('main').innerHTML=`<div style="text-align:center;padding:80px 40px;font-size:13px;color:#BF3B3B">Could not load: ${err.message}</div>`;});
+
+// Validate token on load — show banner immediately if expired
+(async function checkToken(){
+  const token=getToken();if(!token)return;
+  try{
+    const res=await fetch(`https://api.github.com/repos/${CFG.repo}`,{headers:{Authorization:`token ${token}`}});
+    if(res.status===401||res.status===403)document.getElementById('token-warn').style.display='';
+  }catch{}
+})();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('add-overlay');closeModal('settings-overlay');closeModal('wish-overlay');closeModal('img-overlay');}});
 </script>
 </body>
