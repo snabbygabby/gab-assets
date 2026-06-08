@@ -83,11 +83,11 @@
               "time": null,
               "timeLabel": null,
               "address": "Lavaux Vineyards, Lausanne",
-              "appleMaps": "https://maps.apple.com/?q=Lavaux%20Vineyards%20Lausanne",
-              "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%20Lausanne",
+              "appleMaps": "https://maps.apple.com/?address=Lavaux%20Vineyards%2C%20Lausanne&q=Lavaux%20Vineyards",
+              "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%2C%20Lausanne",
               "website": null,
               "menu": null,
-              "photo": null,
+              "photo": "https://live.staticflickr.com/3688/12935144354_db302b9fd2_b.jpg",
               "confirmationNumber": null,
               "notes": null
             }
