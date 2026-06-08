@@ -278,7 +278,25 @@
           "join": false,
           "joinTitle": null,
           "joinSub": null,
-          "events": []
+          "events": [
+            {
+              "id": "email-1780947177195-usm",
+              "type": "accommodation",
+              "category": "Accommodation",
+              "name": "Hôtel Playa",
+              "subtitle": "1 night, Superior Double Room, 2 adults. Total: €338.90 (room €303.64 + VAT €30.36 + city tax €4.90). Total due: €334 (city tax €4.90 collected at property). Free cancellation until June 30, 2026 11:59 PM CEST; 50% fee within 14 days of arrival. Breakfast available at €14/person/night. PIN: 5584. Part of Europe trip (Nice July 13–22, Lausanne July 9–12).",
+              "time": "Check-in from 3:00 PM; Check-out 7:30 AM–11:00 AM on Jul 16",
+              "timeLabel": null,
+              "address": "99 Rue du Général Allard, 83990 Saint-Tropez, France",
+              "appleMaps": "https://maps.apple.com/?address=99%20Rue%20du%20G%C3%A9n%C3%A9ral%20Allard%2C%2083990%20Saint-Tropez%2C%20France&q=H%C3%B4tel%20Playa",
+              "googleMaps": "https://www.google.com/maps/search/99%20Rue%20du%20G%C3%A9n%C3%A9ral%20Allard%2C%2083990%20Saint-Tropez%2C%20France",
+              "website": "https://www.booking.com/hotel/fr/playa.html",
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": "6551669354",
+              "notes": null
+            }
+          ]
         },
         {
           "id": "2026-07-16",
