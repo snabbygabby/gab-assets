@@ -797,10 +797,46 @@ function restoreFromTrash(destId,itemId){
 }
 
 // HAVERSINE — distance in km between two lat/lon points
+// HAVERSINE — km between two points
 function haversineKm(lat1,lon1,lat2,lon2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 const MAX_DIST_KM=160.934; // 100 miles
 
-// EXPLORE CATEGORY CHIPS
+// OVERPASS — proper category search in OSM (used for chip taps)
+// Keys must match EXPLORE_CHIPS[].q exactly
+const CHIP_OSM={
+  'winery wine bar':            ['["craft"="winery"]','["amenity"="wine_bar"]','["shop"="wine"]'],
+  'restaurant dinner':          ['["amenity"="restaurant"]'],
+  'cafe coffee pastry':         ['["amenity"="cafe"]'],
+  'beach swimming lake':        ['["natural"="beach"]','["leisure"="swimming_area"]','["leisure"="bathing_place"]'],
+  'museum gallery art':         ['["tourism"="museum"]','["tourism"="gallery"]','["amenity"="arts_centre"]'],
+  'park garden hike viewpoint': ['["leisure"="park"]','["tourism"="viewpoint"]'],
+  'shopping boutique market':   ['["shop"~"clothes|shoes|boutique|jewelry|fashion"]'],
+  'bar cocktail nightclub':     ['["amenity"="bar"]','["amenity"="pub"]','["amenity"="nightclub"]'],
+  'historic monument castle church':['["tourism"="attraction"]','["historic"~".+"]','["building"="castle"]'],
+};
+const OP_EMOJI={wine_bar:'🍷',winery:'🍷',wine:'🍷',restaurant:'🍽',cafe:'☕',bakery:'🥐',beach:'🏖',swimming_area:'🏊',bathing_place:'🏊',museum:'🏛',gallery:'🎨',arts_centre:'🎨',park:'🌿',garden:'🌿',viewpoint:'👁',clothes:'🛍',shoes:'🛍',boutique:'🛍',jewelry:'💎',fashion:'🛍',marketplace:'🛒',bar:'🍸',pub:'🍺',nightclub:'🎵',attraction:'✦',castle:'🏰',church:'⛪',cathedral:'⛪'};
+
+async function overpassQuery(tags,lat,lon,limit=24){
+  const r=160000; // 100 miles in meters
+  const parts=tags.flatMap(t=>[`node${t}(around:${r},${lat},${lon});`,`way${t}(around:${r},${lat},${lon});`]);
+  const q=`[out:json][timeout:20];\n(\n  ${parts.join('\n  ')}\n);\nout center ${limit};`;
+  const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q)});
+  if(!res.ok)throw new Error('Overpass error');
+  const d=await res.json();
+  return(d.elements||[]).filter(el=>el.tags?.name);
+}
+function fmtOverpass(el){
+  const name=el.tags.name;
+  const lat=el.lat??el.center?.lat;const lon=el.lon??el.center?.lon;
+  const street=el.tags['addr:housenumber']?`${el.tags['addr:housenumber']} ${el.tags['addr:street']||''}`.trim():el.tags['addr:street'];
+  const addr=[street,el.tags['addr:city']].filter(Boolean).join(', ');
+  const website=el.tags.website||el.tags['contact:website']||el.tags['contact:url']||null;
+  const mapsUrl=lat&&lon?`https://www.google.com/maps?q=${lat},${lon}`:`https://www.google.com/maps/search/${encodeURIComponent(name)}`;
+  const key=el.tags.amenity||el.tags.craft||el.tags.shop||el.tags.tourism||el.tags.natural||el.tags.leisure||el.tags.building||'';
+  return{name,addr,website,mapsUrl,emoji:OP_EMOJI[key]||'📍'};
+}
+
+// CHIP SEARCH — sets the input and triggers Overpass category search
 function chipSearch(destId,q,chipEl){
   const input=document.getElementById(`picks-search-${destId}`);
   if(input)input.value=q;
@@ -809,49 +845,64 @@ function chipSearch(destId,q,chipEl){
   searchPicks(destId);
 }
 
-// PICKS SEARCH — Photon with city bias + 100-mile radius filter
+// MAIN SEARCH — Overpass for chip queries, Photon+city for free text
 async function searchPicks(destId){
   const input=document.getElementById(`picks-search-${destId}`);
   const results=document.getElementById(`picks-search-results-${destId}`);
-  const divider=document.getElementById(`picks-divider-${destId}`);
   if(!input||!results)return;
   const q=input.value.trim();
-  if(!q){results.innerHTML='';if(divider)divider.style.display='';return;}
+  if(!q){results.innerHTML='';return;}
   results.innerHTML='<div class="picks-search-status">Searching…</div>';
   const c=CITY_COORDS[destId]||{};
-  const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=30&lang=en${c.lat?`&lat=${c.lat}&lon=${c.lon}`:''}`;
+  const osmTags=CHIP_OSM[q]; // defined = chip tap → use Overpass; undefined = typed text → use Photon
+
   try{
-    const res=await fetch(url);const d=await res.json();
-    // Filter: must have a name AND be within 100 miles of city center
-    const features=(d.features||[]).filter(f=>{
-      if(!photonName(f))return false;
-      const[lon,lat]=f.geometry?.coordinates||[];
-      if(!lat||!lon||!c.lat)return true;
-      return haversineKm(c.lat,c.lon,lat,lon)<=MAX_DIST_KM;
-    }).slice(0,12);
+    let items=[];
+
+    if(osmTags&&c.lat){
+      // Category chip → Overpass API (proper POI search within 100 miles)
+      const els=await overpassQuery(osmTags,c.lat,c.lon,24);
+      const seen=new Set();
+      items=els.map(fmtOverpass).filter(x=>{if(!x.name||seen.has(x.name))return false;seen.add(x.name);return true;}).slice(0,14);
+    }else{
+      // Free text → Photon with city name appended (improves local relevance)
+      const dest=S.data?.destinations.find(d=>d.id===destId);
+      const city=dest?.city||'';
+      const pq=city?`${q} ${city}`:q;
+      const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(pq)}&limit=25&lang=en${c.lat?`&lat=${c.lat}&lon=${c.lon}`:''}`;
+      const res=await fetch(url);const d=await res.json();
+      items=(d.features||[]).filter(f=>{
+        if(!photonName(f))return false;
+        const[lon,lat]=f.geometry?.coordinates||[];
+        if(!lat||!lon||!c.lat)return true;
+        return haversineKm(c.lat,c.lon,lat,lon)<=MAX_DIST_KM;
+      }).slice(0,12).map(f=>{
+        const name=photonName(f);const cat=photonCategory(f);const addr=photonAddr(f);const full=photonFull(f);
+        const geo=f.geometry?.coordinates;
+        const mapsUrl=geo?`https://www.google.com/maps?q=${geo[1]},${geo[0]}`:`https://www.google.com/maps/search/${encodeURIComponent(name)}`;
+        return{name,addr:[cat?cat.replace(/^\S+\s/,''):'',addr].filter(Boolean).join(' · '),mapsUrl,emoji:cat?cat.split(' ')[0]:'📍',website:null};
+      });
+    }
+
     results.innerHTML='';
-    if(divider)divider.style.display=features.length?'':'';
-    if(!features.length){results.innerHTML='<div class="picks-search-status">No results nearby — try a different term</div>';return;}
-    features.forEach(f=>{
-      const name=photonName(f);
-      const cat=photonCategory(f);const addr=photonAddr(f);const full=photonFull(f);
-      const geo=f.geometry?.coordinates;
-      const mapsUrl=geo?`https://www.google.com/maps?q=${geo[1]},${geo[0]}`:`https://www.google.com/maps/search/${encodeURIComponent(name+(addr?' '+addr:''))}`;
-      const catEmoji=cat?cat.split(' ')[0]:'📍';
-      const catLabel=cat?cat.replace(/^\S+\s/,''):'';
-      const meta=[catLabel,addr].filter(Boolean).join(' · ');
-      const item=el('div','picks-search-item');
-      item.innerHTML=`<div class="picks-search-item-main"><span class="picks-search-emoji">${catEmoji}</span><div class="picks-search-info"><div class="picks-search-name">${esc(name)}</div><div class="picks-search-meta">${esc(meta)}</div></div><span class="picks-add-icon">+</span></div><a class="picks-search-ext" href="${esc(mapsUrl)}" target="_blank" title="Open in Google Maps">↗</a>`;
-      item.querySelector('.picks-search-item-main').addEventListener('click',()=>openPickToDay(destId,{name,address:full||addr,googleMaps:mapsUrl}));
-      results.appendChild(item);
+    if(!items.length){results.innerHTML='<div class="picks-search-status">No results nearby — try a different term</div>';return;}
+    items.forEach(item=>{
+      const row=el('div','picks-search-item');
+      const extHref=item.website||item.mapsUrl;
+      row.innerHTML=`<div class="picks-search-item-main"><span class="picks-search-emoji">${item.emoji}</span><div class="picks-search-info"><div class="picks-search-name">${esc(item.name)}</div><div class="picks-search-meta">${esc(item.addr||'')}</div></div><span class="picks-add-icon">+</span></div><a class="picks-search-ext" href="${esc(extHref)}" target="_blank" title="${item.website?'Website':'Google Maps'}">↗</a>`;
+      row.querySelector('.picks-search-item-main').addEventListener('click',()=>openPickToDay(destId,{name:item.name,address:item.addr||item.name,googleMaps:item.mapsUrl}));
+      results.appendChild(row);
     });
-  }catch{results.innerHTML='<div class="picks-search-status">Search failed</div>';}
+  }catch(err){results.innerHTML='<div class="picks-search-status">Search failed — try again</div>';}
 }
 function setupPicksSearch(destId){
   const input=document.getElementById(`picks-search-${destId}`);if(!input)return;
   let timer=null;
-  input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>searchPicks(destId),280);});
-  input.addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(timer);searchPicks(destId);}if(e.key==='Escape'){input.value='';searchPicks(destId);document.querySelectorAll(`#picks-chips-${destId} .picks-chip`).forEach(c=>c.classList.remove('active'));}});
+  input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>searchPicks(destId),320);});
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){clearTimeout(timer);searchPicks(destId);}
+    if(e.key==='Escape'){input.value='';const r=document.getElementById(`picks-search-results-${destId}`);if(r)r.innerHTML='';document.querySelectorAll(`#picks-chips-${destId} .picks-chip`).forEach(c=>c.classList.remove('active'));}
+  });
 }
 
 // PICKS FUNCTIONS
