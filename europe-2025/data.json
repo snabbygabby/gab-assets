@@ -313,6 +313,23 @@
               "photo": "https://static.seetheworld.com/image_uploader/photos/b0/original/la-colombe-d-or-restaurant-st-paul-de-vence-terrace.jpg?ua=1767168725",
               "confirmationNumber": null,
               "notes": null
+            },
+            {
+              "id": "ev-1780955174253",
+              "type": "activity",
+              "category": "Activity",
+              "name": "Bastille Day Fireworks (July 14)",
+              "subtitle": null,
+              "time": null,
+              "timeLabel": null,
+              "address": "Bastille Day Fireworks (July 14), Nice",
+              "appleMaps": "https://maps.apple.com/?q=Bastille%20Day%20Fireworks%20(July%2014)",
+              "googleMaps": "https://www.google.com/maps/search/Bastille%20Day%20Fireworks%20(July%2014)%20Nice",
+              "website": null,
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
             }
           ]
         },
