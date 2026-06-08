@@ -172,6 +172,8 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .picks-search-ext { display:flex; align-items:center; padding:0 10px; font-size:11px; color:var(--sand); text-decoration:none; border-left:1px solid var(--rule); flex-shrink:0; transition:background .15s, color .15s; white-space:nowrap; }
 .picks-search-ext:hover { background:var(--sand-light); color:var(--ink); }
 .picks-search-status { font-size:10px; color:var(--ink-30); text-align:center; padding:10px 8px; font-style:italic; }
+.picks-refresh-btn { width:100%; padding:8px 10px; font-size:10px; font-weight:500; color:var(--sand); background:none; border:none; border-top:1px dashed var(--rule); cursor:pointer; font-family:'Inter',sans-serif; text-align:center; transition:all .15s; letter-spacing:.04em; }
+.picks-refresh-btn:hover { background:var(--sand-light); color:var(--ink); }
 .picks-divider { font-size:8px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-30); padding:6px 10px 4px; border-top:1px solid var(--rule); margin-top:2px; }
 
 /* TRASH — RECENTLY REMOVED */
@@ -779,7 +781,6 @@ function sectionOpen(type,destId){
 // CURATED TOP PICKS — categorized, 10 per category per city
 // Sources: Michelin, Infatuation, Gault & Millau, Eater, Time Out, Afar, Atlas Obscura,
 //          NYT 36 Hours, Condé Nast Traveler, Rick Steves, Lonely Planet, Fodor's
-const PICKS_PER_CAT=6; // show this many per category; dismissing one auto-surfaces the next from the pool
 const PICK_CATEGORIES=[
   {key:'restaurants',label:'Restaurants',emoji:'🍽'},
   {key:'bars',label:'Bars & Nightlife',emoji:'🍸'},
@@ -1177,7 +1178,6 @@ function renderPicks(destId){
   PICK_CATEGORIES.forEach(cat=>{
     const all=cats[cat.key]||[];
     const available=all.filter(p=>!dismissed.includes(p.id));
-    const visible=available.slice(0,PICKS_PER_CAT);
     totalAll+=all.length;totalAvail+=available.length;
     const isOpen=picksCatOpen(destId,cat.key);
     const head=el('div','picks-cat-head');
@@ -1193,7 +1193,7 @@ function renderPicks(destId){
       empty.innerHTML=`All ${esc(cat.label.toLowerCase())} seen! <button class="picks-reset" onclick="resetPicksCat('${destId}','${cat.key}')">Show again</button>`;
       wrap.appendChild(empty);
     }else{
-      visible.forEach(pick=>{
+      available.forEach(pick=>{
         const item=el('div','picks-item');item.dataset.id=pick.id;
         const metaRow=(pick.instagram||pick.desc)?`<div class="picks-meta-row">${pick.instagram?`<a class="picks-ig" href="https://instagram.com/${pick.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()">${esc(pick.instagram)}</a>`:''} ${pick.desc?`<button class="picks-why-btn" onclick="event.stopPropagation();togglePicksWhy(this)">Details ▾</button>`:''}</div>`:'';
         const whyBody=pick.desc?`<div class="picks-why-body" style="display:none">${esc(pick.desc)}</div>`:'';
@@ -1201,10 +1201,30 @@ function renderPicks(destId){
         item.querySelector('.picks-item-main').addEventListener('click',e=>showPicksPopup(e,destId,{...pick,address:pick.name+', '+city,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`}));
         wrap.appendChild(item);
       });
+      if(available.length<all.length){
+        const btn=el('button','picks-refresh-btn');
+        btn.textContent='↻ Refresh for more recs';
+        btn.addEventListener('click',()=>refreshPicksCategory(destId,cat.key));
+        wrap.appendChild(btn);
+      }
     }
     list.appendChild(wrap);
   });
   if(footer){const n=dismissed.length;footer.textContent=n?`${n} dismissed · ${totalAvail} remaining`:`${totalAll} curated picks`;}
+}
+const CAT_CHIP_MAP={restaurants:'restaurant dinner',bars:'bar cocktail nightclub',activities:'historic monument castle church',hikes:'park garden hike viewpoint',museums:'museum gallery art',sightseeing:'historic monument castle church',wineries:'winery wine bar'};
+function refreshPicksCategory(destId,catKey){
+  // open picks section if collapsed
+  const body=document.getElementById(`picks-body-${destId}`);
+  if(body&&body.style.display==='none')toggleSection('picks',destId);
+  // scroll search into view
+  const searchRow=document.getElementById(`picks-search-${destId}`);
+  if(searchRow)searchRow.scrollIntoView({behavior:'smooth',block:'center'});
+  // run the matching chip search (Overpass, excludes nothing from dismissed curated list)
+  const q=CAT_CHIP_MAP[catKey]||catKey;
+  document.querySelectorAll(`#picks-chips-${destId} .picks-chip`).forEach(c=>c.classList.remove('active'));
+  const input=document.getElementById(`picks-search-${destId}`);
+  if(input){input.value=q;searchPicks(destId);}
 }
 function dismissPick(e,destId,pickId){
   e.stopPropagation();
