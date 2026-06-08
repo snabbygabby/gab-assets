@@ -243,19 +243,100 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 .toast.show { transform:translateY(0); opacity:1; }
 .toast.err { background:var(--red); }
 
-/* RESPONSIVE */
+/* RESPONSIVE — TABLET */
 @media (max-width:1100px) { :root{--sidebar-w:200px;} .dest-layout{gap:24px;} }
 @media (max-width:860px) {
   .dest-layout,.dest-layout.sidebar-hidden { grid-template-columns:1fr; }
-  .accom-sidebar { position:static; max-height:none; padding-top:24px; }
+  .accom-sidebar { position:static; max-height:none; padding-top:20px; }
   .dest-layout.sidebar-hidden .accom-sidebar { display:none; }
-  .hero{height:360px;} .hero-city{font-size:42px;} .hero-content{padding:28px 20px;}
-  .wrap{padding:0 20px;} .nav{padding:0 20px;}
+  .hero{height:320px;} .hero-city{font-size:48px;} .hero-content{padding:32px 28px;}
+  .wrap{padding:0 24px;} .nav{padding:0 24px;}
   .grid{grid-template-columns:1fr 1fr; gap:10px;} .day-num{font-size:44px;}
-  .form-row.cols-2{grid-template-columns:1fr;} .modal-head{padding:16px 16px 14px;} .modal-body{padding:16px;}
+  .form-row.cols-2{grid-template-columns:1fr;} .modal-head{padding:16px 18px 14px;} .modal-body{padding:16px 18px 24px;}
   .add-btn{bottom:16px;right:16px;} .toast{right:16px;bottom:76px;}
 }
-@media (max-width:500px) { .grid{grid-template-columns:1fr;} }
+
+/* RESPONSIVE — PHONE */
+@media (max-width:600px) {
+  /* Nav: tight, hide date/travelers (shown in hero) */
+  .nav { height:46px; padding:0 14px; gap:10px; }
+  .nav-pill { display:none; }
+  .nav-title { font-size:14px; }
+
+  /* Hero: shorter, readable */
+  .hero { height:240px; }
+  .hero-city { font-size:38px; margin-bottom:10px; letter-spacing:-.02em; }
+  .hero-content { padding:20px 16px; }
+  .hero-eyebrow { margin-bottom:5px; }
+  .hero-meta { gap:18px; }
+  .hero-meta-item { font-size:11px; }
+  .hero-meta-label { font-size:8px; }
+
+  /* Destination divider */
+  .dest-div { padding:20px 0; }
+
+  /* Layout */
+  .wrap { padding:0 14px; }
+
+  /* Sidebar reveal button: full-width, prominent */
+  .sidebar-reveal { width:100%; justify-content:center; padding:10px 14px; font-size:11px; margin-bottom:16px; border-radius:3px; }
+
+  /* Days */
+  .day { padding:22px 0 6px; }
+  .day-head { padding-bottom:10px; margin-bottom:10px; }
+  .day-num { font-size:34px; }
+  .day-weekday { font-size:18px; gap:8px; }
+  .day-datestr { font-size:10px; }
+  .day-note-wrap { margin:0 0 16px; }
+  .day-note-input { font-size:13px; }
+
+  /* Cards: single column */
+  .grid { grid-template-columns:1fr; gap:9px; }
+  .card-img { height:120px; }
+  .card-img-ph { height:120px; }
+  .card-body { padding:11px 13px 13px; }
+  .card-name { font-size:15px; }
+  .card-action-btn { width:28px; height:28px; font-size:12px; }
+
+  /* Flight card: stack cleanly */
+  .card.flight .card-inner { flex-wrap:wrap; padding:12px 14px; gap:3px 18px; align-items:flex-start; }
+  .flight-route-h { flex-basis:100%; margin-bottom:2px; }
+  .flight-iata-h { font-size:24px; }
+  .flight-spacer,.flight-cat-h { display:none; }
+  .flight-divider-h { display:none; }
+
+  /* Placeholder card */
+  .card.placeholder { min-height:60px; padding:16px; }
+
+  /* Accommodation sidebar */
+  .accom-hide-btn { padding:6px 10px; font-size:11px; }
+  .map-btn { padding:8px 14px; font-size:11px; }
+  .accom-notes-area { font-size:13px; }
+
+  /* Wishlist */
+  .wish-search { font-size:16px; padding:10px 12px; }
+  .wish-ac-item { padding:10px 12px; }
+  .wish-item { padding:9px 10px; }
+
+  /* Modal: sheet slides up from bottom */
+  .modal-overlay { align-items:flex-end; padding:0; }
+  .modal { border-radius:18px 18px 0 0; max-height:92vh; }
+  .modal-overlay.open .modal { transform:translateY(0); }
+  .modal-head { padding:18px 18px 14px; }
+  .modal-body { padding:14px 18px 36px; }
+  .form-row.cols-2 { grid-template-columns:1fr; }
+  .form-input,.form-select,.form-textarea { font-size:16px; } /* prevents iOS zoom */
+
+  /* Add button */
+  .add-btn { width:54px; height:54px; font-size:28px; bottom:20px; right:16px; }
+
+  /* Toast */
+  .toast { right:14px; bottom:88px; font-size:12px; padding:10px 16px; left:14px; text-align:center; }
+
+  /* Footer */
+  footer { padding:36px 20px 60px; }
+  .f-title { font-size:20px; }
+}
 </style>
 </head>
 <body>
@@ -515,7 +596,8 @@ function renderDest(dest){
 
   const wrap=el('div','wrap');
   const layout=el('div','dest-layout');layout.id=`layout-${dest.id}`;
-  const wasHidden=localStorage.getItem(`sidebar-${dest.id}`)==='1';
+  const savedPref=localStorage.getItem(`sidebar-${dest.id}`);
+  const wasHidden=savedPref!==null?savedPref==='1':window.innerWidth<700;
   if(wasHidden)layout.classList.add('sidebar-hidden');
 
   // Sidebar
