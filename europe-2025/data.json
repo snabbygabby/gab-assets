@@ -103,20 +103,7 @@
               "photo": "https://media-cdn.tripadvisor.com/media/photo-s/03/d4/1b/d3/eat-me-restaurant.jpg",
               "confirmationNumber": null,
               "notes": null
-            }
-          ],
-          "note": "Hiking day?"
-        },
-        {
-          "id": "2026-07-11",
-          "num": "11",
-          "weekday": "Saturday",
-          "label": "July 11 · Lausanne",
-          "badge": null,
-          "join": false,
-          "joinTitle": null,
-          "joinSub": null,
-          "events": [
+            },
             {
               "id": "ev-1780943375774",
               "type": "activity",
@@ -136,6 +123,18 @@
               "notes": null
             }
           ],
+          "note": "Hiking day?"
+        },
+        {
+          "id": "2026-07-11",
+          "num": "11",
+          "weekday": "Saturday",
+          "label": "July 11 · Lausanne",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": [],
           "note": "Annecy Day"
         },
         {
