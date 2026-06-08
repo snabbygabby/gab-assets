@@ -133,6 +133,18 @@
           "join": false,
           "joinTitle": null,
           "joinSub": null,
+          "events": [],
+          "note": "Annecy Day"
+        },
+        {
+          "id": "2026-07-12",
+          "num": "12",
+          "weekday": "Sunday",
+          "label": "July 12 · Last Evening in Lausanne",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
           "events": [
             {
               "id": "ev-1780954673435",
@@ -152,19 +164,7 @@
               "nights": null,
               "notes": null
             }
-          ],
-          "note": "Annecy Day"
-        },
-        {
-          "id": "2026-07-12",
-          "num": "12",
-          "weekday": "Sunday",
-          "label": "July 12 · Last Evening in Lausanne",
-          "badge": null,
-          "join": false,
-          "joinTitle": null,
-          "joinSub": null,
-          "events": []
+          ]
         },
         {
           "id": "2026-07-13",
