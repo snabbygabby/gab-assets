@@ -106,7 +106,7 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .picks-card-top { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:background .15s; }
 .picks-card-top:hover { background:var(--cream); }
 .picks-tag { font-size:8px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--sand); }
-.picks-list { padding:6px 8px; display:flex; flex-direction:column; gap:4px; }
+.picks-list { padding:0; display:flex; flex-direction:column; }
 .picks-item { display:flex; align-items:stretch; border-radius:3px; border:1px solid var(--rule); background:var(--cream); overflow:hidden; transition:opacity .2s, transform .2s; }
 .picks-item-main { display:flex; align-items:center; gap:7px; padding:7px 8px; flex:1; cursor:pointer; transition:background .15s; min-width:0; }
 .picks-item-main:hover { background:var(--sand-light); }
@@ -121,6 +121,16 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .picks-footer { font-size:9px; color:var(--ink-30); text-align:center; padding:7px; border-top:1px solid var(--rule); letter-spacing:.04em; }
 .picks-empty { font-size:11px; color:var(--ink-30); text-align:center; padding:16px 10px; font-style:italic; line-height:1.6; }
 .picks-reset { background:none; border:none; cursor:pointer; color:var(--sand); font-size:11px; text-decoration:underline; font-family:'Inter',sans-serif; margin-top:4px; display:block; margin-inline:auto; }
+.picks-cat-head { display:flex; align-items:center; justify-content:space-between; padding:8px 10px 7px; cursor:pointer; transition:background .15s; border-top:1px solid var(--rule); user-select:none; }
+.picks-cat-head:first-child { border-top:none; }
+.picks-cat-head:hover { background:var(--cream); }
+.picks-cat-left { display:flex; align-items:center; gap:5px; }
+.picks-cat-emoji { font-size:13px; line-height:1; }
+.picks-cat-label { font-size:10px; font-weight:600; color:var(--ink); letter-spacing:.02em; }
+.picks-cat-count { font-size:9px; color:var(--ink-30); margin-left:1px; }
+.picks-cat-chevron { font-size:9px; color:var(--ink-30); }
+.picks-cat-items { padding:2px 8px 6px; display:flex; flex-direction:column; gap:4px; }
+.picks-cat-items .picks-empty { padding:6px 4px 8px; }
 
 /* EXPLORE CATEGORY CHIPS */
 .picks-chips { display:flex; gap:5px; padding:8px 8px 6px; overflow-x:auto; border-bottom:1px solid var(--rule); -webkit-overflow-scrolling:touch; scrollbar-width:none; flex-wrap:wrap; }
@@ -713,62 +723,166 @@ function sectionOpen(type,destId){
   // default: open on desktop, closed on mobile
   return saved!==null?saved==='1':window.innerWidth>=700;
 }
-// CURATED TOP PICKS — pool per destination
+// CURATED TOP PICKS — categorized, 10 per category per city
+// Sources: Michelin, Infatuation, Gault & Millau, Eater, Time Out, Afar, Atlas Obscura,
+//          NYT 36 Hours, Condé Nast Traveler, Rick Steves, Lonely Planet, Fodor's
+const PICK_CATEGORIES=[
+  {key:'restaurants',label:'Restaurants',emoji:'🍽'},
+  {key:'bars',label:'Bars & Nightlife',emoji:'🍸'},
+  {key:'activities',label:'Activities',emoji:'🎯'},
+  {key:'hikes',label:'Hikes & Nature',emoji:'🥾'},
+  {key:'museums',label:'Museums',emoji:'🏛'},
+  {key:'sightseeing',label:'Sightseeing',emoji:'👁'},
+];
 const CITY_PICKS={
-  lausanne:[
-    {id:'lau-01',name:'Ouchy Waterfront',emoji:'🌊',note:'Lake Geneva promenade & marina'},
-    {id:'lau-02',name:'Lausanne Cathedral',emoji:'⛪',note:'Gothic, 13th c. — free entry'},
-    {id:'lau-03',name:'Olympic Museum',emoji:'🏅',note:'Best sports museum in the world'},
-    {id:'lau-04',name:'Lavaux Vineyards',emoji:'🍷',note:'UNESCO wine terraces, 30 min away'},
-    {id:'lau-05',name:'Chillon Castle',emoji:'🏰',note:'Medieval castle on the lake (Montreux)'},
-    {id:'lau-06',name:'Place de la Palud',emoji:'⛲',note:'Medieval fountain, Sat market'},
-    {id:'lau-07',name:'Sauvabelin Tower',emoji:'🌲',note:'Forest hike + panoramic views'},
-    {id:'lau-08',name:'Flon District',emoji:'🎨',note:'Trendy bars, galleries & shops'},
-    {id:'lau-09',name:'Collection de l\'Art Brut',emoji:'🖼',note:'Outsider art — totally unique'},
-    {id:'lau-10',name:'Plage de Vidy',emoji:'🏖',note:'Free city beach on the lake'},
-    {id:'lau-11',name:'MUDAC Design Museum',emoji:'✦',note:'Applied arts & contemporary design'},
-    {id:'lau-12',name:'Rolex Learning Center',emoji:'🏛',note:'EPFL\'s stunning wavy building'},
-    {id:'lau-13',name:'Escaliers du Marché',emoji:'🪜',note:'Covered medieval stairway'},
-    {id:'lau-14',name:'Old Town (Cité)',emoji:'🏘',note:'Medieval hilltop heart of Lausanne'},
-    {id:'lau-15',name:'CGN Lake Cruise',emoji:'⛵',note:'Belle Époque steamers on the lake'},
-    {id:'lau-16',name:'Fondation de l\'Hermitage',emoji:'🖼',note:'Art museum in a Victorian villa'},
-    {id:'lau-17',name:'Bains de la Belotte',emoji:'🏊',note:'Lakeside swimming & sunbathing'},
-    {id:'lau-18',name:'Gruyères Day Trip',emoji:'🧀',note:'Fairy-tale castle & fondue'},
-    {id:'lau-19',name:'Saint-Sulpice Church',emoji:'⛪',note:'Romanesque, right on the lake'},
-    {id:'lau-20',name:'Musée Cantonal MCBA',emoji:'🖼',note:'Fine arts in the new Platform 10'},
-    {id:'lau-21',name:'Montreux Walk',emoji:'🎵',note:'Queen statue, roses, lakeside'},
-    {id:'lau-22',name:'Place de la Riponne',emoji:'🛒',note:'Market square & Palais Rumine'},
-    {id:'lau-23',name:'Musée Romain de Vidy',emoji:'🏺',note:'Roman ruins by the lake'},
-    {id:'lau-24',name:'Lutry Wine Village',emoji:'🍇',note:'15 min east, vineyard village'},
-    {id:'lau-25',name:'Parc Mon Repos',emoji:'🌿',note:'Tranquil gardens & lake views'},
-  ],
-  nice:[
-    {id:'nic-01',name:'Vieux-Nice Old Town',emoji:'🏘',note:'Baroque facades, food stalls'},
-    {id:'nic-02',name:'Promenade des Anglais',emoji:'🌊',note:'The iconic 7 km seafront'},
-    {id:'nic-03',name:'Cours Saleya Market',emoji:'🌸',note:'Flowers & produce — mornings only'},
-    {id:'nic-04',name:'Castle Hill',emoji:'🏰',note:'Best views over the city & bay'},
-    {id:'nic-05',name:'Cap d\'Antibes Walk',emoji:'🌿',note:'Coastal path, Villa Eilenroc'},
-    {id:'nic-06',name:'Antibes Old Town',emoji:'⚓',note:'Fortified port, Picasso Museum'},
-    {id:'nic-07',name:'Eze Village',emoji:'🌵',note:'Perched medieval village, perfume'},
-    {id:'nic-08',name:'Monaco',emoji:'🎰',note:'Casino, palace, F1 circuit'},
-    {id:'nic-09',name:'Matisse Museum',emoji:'🎨',note:'17 galleries in a Genoese villa'},
-    {id:'nic-10',name:'Chagall Museum',emoji:'🖼',note:'Stained glass & biblical paintings'},
-    {id:'nic-11',name:'Bastille Day Fireworks',emoji:'🎆',note:'July 14 — Promenade des Anglais'},
-    {id:'nic-12',name:'Cap Ferrat',emoji:'⛵',note:'Peninsula walk, Villa Ephrussi'},
-    {id:'nic-13',name:'Villefranche-sur-Mer',emoji:'🎨',note:'Colorful fishing port, chapel'},
-    {id:'nic-14',name:'Plage de la Garoupe',emoji:'🏖',note:'Best beach near Antibes'},
-    {id:'nic-15',name:'Juan-les-Pins',emoji:'🎵',note:'Jazz Festival beach town'},
-    {id:'nic-16',name:'Saint-Paul-de-Vence',emoji:'🖼',note:'Art galleries & medieval walls'},
-    {id:'nic-17',name:'Gorges du Verdon',emoji:'🏞',note:'Grand Canyon of Europe'},
-    {id:'nic-18',name:'Îles de Lérins',emoji:'🏝',note:'Ferry from Cannes, island monastery'},
-    {id:'nic-19',name:'Grasse',emoji:'💐',note:'Perfume capital, factory tours'},
-    {id:'nic-20',name:'Cannes',emoji:'🎬',note:'Croisette boulevard, beach clubs'},
-    {id:'nic-21',name:'Biot Village',emoji:'🫧',note:'Glassblowing & medieval lanes'},
-    {id:'nic-22',name:'Place Masséna',emoji:'⛲',note:'Nice\'s grand main square'},
-    {id:'nic-23',name:'MAMAC',emoji:'🎨',note:'Contemporary art + great rooftop'},
-    {id:'nic-24',name:'Menton',emoji:'🍋',note:'Lemon town near the Italian border'},
-    {id:'nic-25',name:'Mougins Village',emoji:'🍽',note:'Medieval village, Picasso\'s retreat'},
-  ]
+  lausanne:{
+    restaurants:[
+      {id:'lau-r-01',name:'Café de Grancy',emoji:'🍽',note:'Local bistro in Ouchy — sunny terrace, classic Swiss-French'},
+      {id:'lau-r-02',name:'Café Romand',emoji:'🧀',note:'Since 1951 — the definitive place for fondue & rösti'},
+      {id:'lau-r-03',name:'Hôtel de Ville de Crissier',emoji:'⭐',note:'3 Michelin stars (Franck Giovannini) — 20 min away'},
+      {id:'lau-r-04',name:'Brasserie de Montbenon',emoji:'🥂',note:'French brasserie with a beautiful Belle Époque park terrace'},
+      {id:'lau-r-05',name:'Miyako',emoji:'🍣',note:'Lausanne\'s most acclaimed Japanese — book ahead'},
+      {id:'lau-r-06',name:'La Table d\'Edgard',emoji:'🌊',note:'Lakeside elegance at Beau-Rivage Palace, Ouchy'},
+      {id:'lau-r-07',name:'Great Escape Café',emoji:'🥞',note:'Beloved weekend brunch spot in the Flon district'},
+      {id:'lau-r-08',name:'Eat Me',emoji:'🌶',note:'Asian-fusion tapas, buzzy late-night crowd, Flon'},
+      {id:'lau-r-09',name:'Le Lapin Vert',emoji:'🐇',note:'Cozy creative cuisine — Flon district gem'},
+      {id:'lau-r-10',name:'Chez Martin',emoji:'🍷',note:'Wine bar meets bistro — natural wine & market plates'},
+    ],
+    bars:[
+      {id:'lau-b-01',name:'Café du Grütli',emoji:'🍺',note:'Lively brasserie bar, student crowd, great terrace'},
+      {id:'lau-b-02',name:'Lulu Bar',emoji:'🍸',note:'Cocktail bar in Flon — the local favorite'},
+      {id:'lau-b-03',name:'Le Bleu Lézard',emoji:'🎵',note:'Arts bar in Flon with live music & DJs most nights'},
+      {id:'lau-b-04',name:'MAD Club',emoji:'💃',note:'Lausanne\'s best nightclub — converted warehouse, Flon'},
+      {id:'lau-b-05',name:'Backstage Hotel Bar',emoji:'🪩',note:'Sleek hotel bar in the Flon — cool crowd, good cocktails'},
+      {id:'lau-b-06',name:'La Cave de la Cathédrale',emoji:'🍷',note:'Underground wine cave under the Old Town'},
+      {id:'lau-b-07',name:'Brasserie des Terreaux',emoji:'🌿',note:'Central terrace bar — all-day drinking on the square'},
+      {id:'lau-b-08',name:'Brasserie des Artisans',emoji:'🍻',note:'Craft beer bar with a solid rotating tap list'},
+      {id:'lau-b-09',name:'Les Arches',emoji:'🎶',note:'Outdoor summer bar under the Flon rail bridges'},
+      {id:'lau-b-10',name:'Café Beau-Séjour',emoji:'🥃',note:'Evening wine bar vibes in the Ouchy district'},
+    ],
+    activities:[
+      {id:'lau-a-01',name:'CGN Belle Époque Boat Cruise',emoji:'⛴',note:'100-year-old paddle steamer across Lake Geneva'},
+      {id:'lau-a-02',name:'Paddleboard at Ouchy Marina',emoji:'🏄',note:'Board rental at the marina — flat calm lake water'},
+      {id:'lau-a-03',name:'Wine Tasting in Lavaux',emoji:'🍷',note:'UNESCO vineyard cellars open for tastings in the terraces'},
+      {id:'lau-a-04',name:'Plage de Vidy Swimming',emoji:'🏊',note:'Free city beach — lifeguards, showers, mountain backdrop'},
+      {id:'lau-a-05',name:'Cycling the Lavaux Route',emoji:'🚴',note:'Rent bikes and pedal through wine terraces above the lake'},
+      {id:'lau-a-06',name:'Fondue Evening at Café Romand',emoji:'🫕',note:'Mandatory Swiss experience — go on a weekday for walk-ins'},
+      {id:'lau-a-07',name:'Gruyères Day Trip',emoji:'🧀',note:'1.5h: medieval fairy-tale castle + cheese factory + fondue'},
+      {id:'lau-a-08',name:'Ouchy Inline Skating',emoji:'🛼',note:'Rent skates and glide the lakeside promenade at dusk'},
+      {id:'lau-a-09',name:'Old Town by Night',emoji:'🌙',note:'Walk Flon → Cathedral → Place de la Palud after dark'},
+      {id:'lau-a-10',name:'Montreux & Freddie\'s Statue',emoji:'🎸',note:'30 min by train: lakeside roses + Queen memorial'},
+    ],
+    hikes:[
+      {id:'lau-h-01',name:'Signal de Sauvabelin',emoji:'🌲',note:'Easy city forest hike — wooden tower & sweeping lake views'},
+      {id:'lau-h-02',name:'Lavaux Vineyard Trail',emoji:'🍇',note:'UNESCO terraces on foot: Lutry → Chexbres (3h scenic)'},
+      {id:'lau-h-03',name:'Promenade des Pêcheurs',emoji:'🚶',note:'Flat lakeside walk to Saint-Sulpice church — 4km easy'},
+      {id:'lau-h-04',name:'Gorges du Chauderon',emoji:'🌿',note:'Steep city ravine trail — surprisingly wild, 30 min from center'},
+      {id:'lau-h-05',name:'Les Pléiades Circuit',emoji:'🌼',note:'Rack railway up, then wildflower plateau walks above the clouds'},
+      {id:'lau-h-06',name:'Forêt de Sauvabelin Loop',emoji:'🦆',note:'Full forest circuit around a small lake — deer & waterfowl'},
+      {id:'lau-h-07',name:'Chemin des Collines',emoji:'🏔',note:'Ridge walk above the vineyards with Alp panoramas'},
+      {id:'lau-h-08',name:'Dent de Vaulion Summit',emoji:'⛰',note:'1.5h drive then hike — rocky summit with 360° views'},
+      {id:'lau-h-09',name:'Lac de Joux Trail',emoji:'🏞',note:'Jura plateau walk around a high-altitude lake, quiet & beautiful'},
+      {id:'lau-h-10',name:'Col du Marchairuz Stroll',emoji:'🌤',note:'Drive the Jura ridgeline; short walks above the cloud layer'},
+    ],
+    museums:[
+      {id:'lau-m-01',name:'Collection de l\'Art Brut',emoji:'🖼',note:'World\'s greatest outsider art collection — totally unique'},
+      {id:'lau-m-02',name:'Olympic Museum',emoji:'🏅',note:'Interactive, spectacular — best sports museum on Earth'},
+      {id:'lau-m-03',name:'MUDAC Design Museum',emoji:'✦',note:'Applied arts & contemporary design at Platform 10'},
+      {id:'lau-m-04',name:'Musée de l\'Élysée',emoji:'📷',note:'Photography museum, newly renovated, Platform 10'},
+      {id:'lau-m-05',name:'Musée Cantonal des Beaux-Arts',emoji:'🎨',note:'Swiss & European painting in a stunning new building'},
+      {id:'lau-m-06',name:'Fondation de l\'Hermitage',emoji:'🏛',note:'Impressionism in a hilltop Victorian villa with park views'},
+      {id:'lau-m-07',name:'Palais Rumine',emoji:'🦕',note:'Natural history & geology — free entry, great rainy-day pick'},
+      {id:'lau-m-08',name:'Musée Romain de Vidy',emoji:'🏺',note:'Roman ruins and artifacts right on the lake shore'},
+      {id:'lau-m-09',name:'Musée de la Main (UNIL)',emoji:'🤚',note:'Quirky museum about the hand, body & perception'},
+      {id:'lau-m-10',name:'Chaplin\'s World (Vevey)',emoji:'🎩',note:'Charlie Chaplin\'s house & museum — 20 min east, unmissable'},
+    ],
+    sightseeing:[
+      {id:'lau-s-01',name:'Lausanne Cathedral',emoji:'⛪',note:'Gothic, 12th c. — climb the tower for panoramic Alp views'},
+      {id:'lau-s-02',name:'Ouchy Waterfront',emoji:'🌊',note:'Belle Époque promenade, marina, lake & mountain backdrop'},
+      {id:'lau-s-03',name:'Flon District',emoji:'🎨',note:'Reclaimed rail yards turned bars, galleries & concept stores'},
+      {id:'lau-s-04',name:'Chillon Castle',emoji:'🏰',note:'Medieval island fortress on the lake — 30 min, unmissable'},
+      {id:'lau-s-05',name:'Old Town (Cité)',emoji:'🏘',note:'Medieval hilltop quarter — winding lanes, fountains, market'},
+      {id:'lau-s-06',name:'Escaliers du Marché',emoji:'🪜',note:'15th c. covered wooden stairway — the most Lausanne thing'},
+      {id:'lau-s-07',name:'Place de la Palud',emoji:'⛲',note:'Medieval fountain square with Saturday artisan market'},
+      {id:'lau-s-08',name:'Rolex Learning Center (EPFL)',emoji:'🌀',note:'SANAA\'s undulating building — free to walk through anytime'},
+      {id:'lau-s-09',name:'Lavaux UNESCO Vineyards',emoji:'🍇',note:'Terraced vineyards above the lake — drive or hike through'},
+      {id:'lau-s-10',name:'Saint-Sulpice Romanesque Church',emoji:'🕌',note:'5th century origins, right on the lake shore'},
+    ],
+  },
+  nice:{
+    restaurants:[
+      {id:'nic-r-01',name:'La Merenda',emoji:'🍽',note:'4-table legend — authentic Niçois, no phone, no card, divine'},
+      {id:'nic-r-02',name:'Chez René Socca',emoji:'🫓',note:'The original socca since 1943 — stand & eat, Vieux Nice'},
+      {id:'nic-r-03',name:'La Petite Maison (LPM)',emoji:'⭐',note:'Riviera institution — celebrities, Niçois classics, terrace'},
+      {id:'nic-r-04',name:'Le Chantecler',emoji:'👑',note:'2★ Michelin at Hôtel Negresco — grandest dining in Nice'},
+      {id:'nic-r-05',name:'Café de Turin',emoji:'🦞',note:'1908 brasserie — piled shellfish platters on the square'},
+      {id:'nic-r-06',name:'Keisuke Matsushima',emoji:'🌸',note:'Japanese-Niçois fusion — creative tasting menus'},
+      {id:'nic-r-07',name:'Le Bistrot Gourmand',emoji:'🌟',note:'Michelin-starred bistro, exceptional-value lunch menu'},
+      {id:'nic-r-08',name:'Boccaccio',emoji:'🐟',note:'Nice institution — whole-grilled fish, fresh sea bass'},
+      {id:'nic-r-09',name:'Le Séjour Café',emoji:'🥗',note:'Casual French-Mediterranean — lovely shaded lunch terrace'},
+      {id:'nic-r-10',name:'Mougins Village Dining',emoji:'🏡',note:'Drive 30 min for medieval village restaurants — worth it'},
+    ],
+    bars:[
+      {id:'nic-b-01',name:'Les Distilleries Idéales',emoji:'🍋',note:'Vieux Nice aperitivo institution — pastis, peanuts & locals'},
+      {id:'nic-b-02',name:'Le Bar du Negresco',emoji:'🎩',note:'Palatial belle époque hotel bar — dress up, worth it'},
+      {id:'nic-b-03',name:'Le Shapko',emoji:'🎷',note:'Jazz bar in Vieux Nice — live music most nights, tiny & great'},
+      {id:'nic-b-04',name:'Wayne\'s Bar',emoji:'🍻',note:'Vieux Nice expat institution — lively, loud, late & fun'},
+      {id:'nic-b-05',name:'La Cave Wilson',emoji:'🍾',note:'Natural wine bar — excellent selection, neighborhood vibe'},
+      {id:'nic-b-06',name:'Mademoiselle Nice',emoji:'🌆',note:'Rooftop cocktail bar — sunset views over the city rooftops'},
+      {id:'nic-b-07',name:'La Fée Verte',emoji:'💚',note:'Absinthe & craft spirits, Old Town — excellent negronis'},
+      {id:'nic-b-08',name:'L\'Abat-jour',emoji:'🕯',note:'Buzzy candlelit terrace bar near Place du Pin'},
+      {id:'nic-b-09',name:'Master Home Bar',emoji:'🥂',note:'Sleek cocktail bar — inventive drinks, late-night crowd'},
+      {id:'nic-b-10',name:'Ma Nolan\'s Irish Pub',emoji:'☘️',note:'Old Nice, sports on TV, craic — reliable late-night fallback'},
+    ],
+    activities:[
+      {id:'nic-a-01',name:'Bastille Day Fireworks (July 14)',emoji:'🎆',note:'Promenade des Anglais — one of Europe\'s most spectacular displays'},
+      {id:'nic-a-02',name:'Jazz à Juan Festival',emoji:'🎺',note:'Juan-les-Pins, July — outdoor jazz under the pines since 1960'},
+      {id:'nic-a-03',name:'Cap d\'Antibes Coastal Walk',emoji:'🌊',note:'Sentier du Littoral — 2h loop past villas, coves & sea spray'},
+      {id:'nic-a-04',name:'Îles de Lérins Boat Trip',emoji:'🏝',note:'Ferry from Cannes — island monastery, snorkeling, picnic'},
+      {id:'nic-a-05',name:'Sea Kayaking at Villefranche',emoji:'🚣',note:'Crystal water, sea caves — guided or self-guided rental'},
+      {id:'nic-a-06',name:'Snorkeling at Cap d\'Antibes',emoji:'🤿',note:'Plage de la Garoupe — clearest water on the whole coast'},
+      {id:'nic-a-07',name:'Cours Saleya Market Morning',emoji:'🌸',note:'Flowers, socca, cheesemakers — go early, leave full'},
+      {id:'nic-a-08',name:'Bike the Promenade des Anglais',emoji:'🚲',note:'Rent bikes — cruise the 7km seafront at sunrise or sunset'},
+      {id:'nic-a-09',name:'Socca & Niçois Cooking Class',emoji:'🍳',note:'Learn socca, ratatouille & pissaladière from a local chef'},
+      {id:'nic-a-10',name:'Stand-Up Paddle in Antibes Bay',emoji:'🏄',note:'Clear Med water — rental on Plage du Ponteil, near us'},
+    ],
+    hikes:[
+      {id:'nic-h-01',name:'Cap d\'Antibes Sentier du Littoral',emoji:'🌊',note:'Rocky coastal loop past villas & secret coves (10km, 2.5h)'},
+      {id:'nic-h-02',name:'Mont Boron Forest Trail',emoji:'🌲',note:'Forest above Nice port — surprise panoramic sea views (1.5h)'},
+      {id:'nic-h-03',name:'Èze to Monaco Coastal Path',emoji:'🏔',note:'Dramatic cliffside walk, 90 min — sea & Monaco views'},
+      {id:'nic-h-04',name:'Tête de Chien Hike',emoji:'⛰',note:'Rocky promontory above Monaco — 360° panorama of the coast'},
+      {id:'nic-h-05',name:'Gorges de la Vésubie',emoji:'🏞',note:'Mountain gorges 45 min north — feels like a different world'},
+      {id:'nic-h-06',name:'Gourdon Village Loop',emoji:'🦅',note:'Eagle\'s nest perched village + lavender field circuit'},
+      {id:'nic-h-07',name:'Gorges du Verdon',emoji:'🏜',note:'Grand Canyon of Europe — 2h drive, absolutely worth a day'},
+      {id:'nic-h-08',name:'Col de Vence Circuit',emoji:'🌺',note:'Provençal countryside walks with wildflowers & village stops'},
+      {id:'nic-h-09',name:'Mercantour National Park',emoji:'🦌',note:'Alpine wilderness 1.5h north — wolves, marmots, glaciers'},
+      {id:'nic-h-10',name:'Sentier Nietzsche (Èze)',emoji:'📚',note:'Steep path the philosopher walked daily — stunning Riviera views'},
+    ],
+    museums:[
+      {id:'nic-m-01',name:'Matisse Museum',emoji:'🎨',note:'17 galleries in a Genoese villa — Cimiez, absolutely unmissable'},
+      {id:'nic-m-02',name:'Chagall National Museum',emoji:'🖼',note:'Stained glass & biblical paintings — his personal gift to France'},
+      {id:'nic-m-03',name:'MAMAC',emoji:'🏙',note:'Contemporary art with a killer rooftop terrace view'},
+      {id:'nic-m-04',name:'Picasso Museum Antibes',emoji:'🎭',note:'150+ works in the Château Grimaldi — finest Picasso setting'},
+      {id:'nic-m-05',name:'Fondation Maeght',emoji:'✦',note:'Best modern art in Provence — Saint-Paul-de-Vence (30 min)'},
+      {id:'nic-m-06',name:'Villa Ephrussi de Rothschild',emoji:'🌸',note:'Belle Époque villa with 9 themed gardens on Cap Ferrat'},
+      {id:'nic-m-07',name:'Musée des Beaux-Arts Jules Chéret',emoji:'🌅',note:'Impressionist collection in a grand Genoese villa'},
+      {id:'nic-m-08',name:'Musée Masséna',emoji:'🏛',note:'History of Nice\'s Belle Époque era, steps from the Promenade'},
+      {id:'nic-m-09',name:'Cocteau Museum (Menton)',emoji:'🎪',note:'Quirky Cocteau retrospective in his own designed building'},
+      {id:'nic-m-10',name:'Musée Renoir (Cagnes-sur-Mer)',emoji:'🖌',note:'Renoir\'s last studio & garden — 20 min west, hidden gem'},
+    ],
+    sightseeing:[
+      {id:'nic-s-01',name:'Vieux-Nice Old Town',emoji:'🏘',note:'Baroque facades, Cours Saleya, socca stalls — essential Nice'},
+      {id:'nic-s-02',name:'Promenade des Anglais',emoji:'🌊',note:'The iconic 7km seafront — Belle Époque grandeur at its finest'},
+      {id:'nic-s-03',name:'Castle Hill (Colline du Château)',emoji:'🏰',note:'Best views of the city, harbor & bay — free, always open'},
+      {id:'nic-s-04',name:'Antibes Old Town',emoji:'⚓',note:'Ramparts, Picasso Museum, morning market — our home base!'},
+      {id:'nic-s-05',name:'Eze Perched Village',emoji:'🌵',note:'Medieval village 430m above sea — cactus garden & perfume'},
+      {id:'nic-s-06',name:'Monaco',emoji:'🎰',note:'Casino, palace, F1 circuit — perfect half-day by train (40 min)'},
+      {id:'nic-s-07',name:'Cap Ferrat Peninsula',emoji:'⛵',note:'Coastal path walk, Villa Ephrussi — serious millionaire gazing'},
+      {id:'nic-s-08',name:'Villefranche-sur-Mer',emoji:'🎨',note:'Most beautiful harbor on the Riviera — Cocteau chapel inside'},
+      {id:'nic-s-09',name:'Saint-Paul-de-Vence',emoji:'🖼',note:'Walled medieval artists\' village — Fondation Maeght & galleries'},
+      {id:'nic-s-10',name:'Place Masséna',emoji:'⛲',note:'Nice\'s grand main square — mosaics, fountains, evening scene'},
+    ],
+  }
 };
 
 const CITY_COORDS={lausanne:{lat:46.52,lon:6.63},nice:{lat:43.71,lon:7.26}};
@@ -914,40 +1028,78 @@ function setupPicksSearch(destId){
 
 // PICKS FUNCTIONS
 function getDismissedPicks(destId){try{return JSON.parse(localStorage.getItem(`dismissed-picks-${destId}`)||'[]');}catch{return[];}}
+function picksCatOpen(destId,catKey){const s=localStorage.getItem(`picks-cat-${destId}-${catKey}`);return s!==null?s==='1':true;}
+function togglePicksCat(destId,catKey){
+  const wrap=document.getElementById(`picks-cat-items-${destId}-${catKey}`);
+  const chev=document.getElementById(`picks-cat-chev-${destId}-${catKey}`);
+  if(!wrap)return;
+  const willOpen=wrap.style.display==='none';
+  wrap.style.display=willOpen?'':'none';
+  if(chev)chev.textContent=willOpen?'▾':'▸';
+  try{localStorage.setItem(`picks-cat-${destId}-${catKey}`,willOpen?'1':'0');}catch{}
+}
+function findPickAcrossCategories(destId,pickId){
+  const cats=CITY_PICKS[destId]||{};
+  for(const cat of PICK_CATEGORIES){const p=(cats[cat.key]||[]).find(p=>p.id===pickId);if(p)return p;}
+  return null;
+}
 function renderPicks(destId){
   const list=document.getElementById(`picks-list-${destId}`);
   const footer=document.getElementById(`picks-footer-${destId}`);
   if(!list)return;
-  const all=CITY_PICKS[destId]||[];
+  const cats=CITY_PICKS[destId]||{};
   const dismissed=getDismissedPicks(destId);
-  const available=all.filter(p=>!dismissed.includes(p.id));
+  const dest=S.data?.destinations.find(d=>d.id===destId);
+  const city=dest?dest.city:destId;
   list.innerHTML='';
-  if(!available.length){
-    list.innerHTML=`<div class="picks-empty">You've seen them all!<button class="picks-reset" onclick="resetPicks('${destId}')">Start over</button></div>`;
-    if(footer)footer.textContent='';return;
-  }
-  available.forEach(pick=>{
-    const item=el('div','picks-item');item.dataset.id=pick.id;
-    item.innerHTML=`<div class="picks-item-main"><span class="picks-emoji">${pick.emoji}</span><div class="picks-info"><div class="picks-name">${esc(pick.name)}</div><div class="picks-note">${esc(pick.note)}</div></div><span class="picks-add-icon">+</span></div><button class="picks-x" onclick="dismissPick(event,'${destId}','${pick.id}')" title="Not interested">×</button>`;
-    const dest=S.data?.destinations.find(d=>d.id===destId);
-    const city=dest?dest.city:destId;
-    item.querySelector('.picks-item-main').addEventListener('click',()=>openPickToDay(destId,{name:pick.name,address:pick.name+', '+city,note:pick.note,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`}));
-    list.appendChild(item);
+  let totalAvail=0,totalAll=0;
+  PICK_CATEGORIES.forEach(cat=>{
+    const all=cats[cat.key]||[];
+    const available=all.filter(p=>!dismissed.includes(p.id));
+    totalAll+=all.length;totalAvail+=available.length;
+    const isOpen=picksCatOpen(destId,cat.key);
+    const head=el('div','picks-cat-head');
+    head.setAttribute('onclick',`togglePicksCat('${destId}','${cat.key}')`);
+    const countLabel=available.length<all.length?`${available.length}/${all.length}`:String(all.length);
+    head.innerHTML=`<div class="picks-cat-left"><span class="picks-cat-emoji">${cat.emoji}</span><span class="picks-cat-label">${cat.label}</span><span class="picks-cat-count">${countLabel}</span></div><span class="picks-cat-chevron" id="picks-cat-chev-${destId}-${cat.key}">${isOpen?'▾':'▸'}</span>`;
+    list.appendChild(head);
+    const wrap=el('div','picks-cat-items');
+    wrap.id=`picks-cat-items-${destId}-${cat.key}`;
+    if(!isOpen)wrap.style.display='none';
+    if(!available.length){
+      const empty=el('div','picks-empty');
+      empty.innerHTML=`All ${esc(cat.label.toLowerCase())} seen! <button class="picks-reset" onclick="resetPicksCat('${destId}','${cat.key}')">Show again</button>`;
+      wrap.appendChild(empty);
+    }else{
+      available.forEach(pick=>{
+        const item=el('div','picks-item');item.dataset.id=pick.id;
+        item.innerHTML=`<div class="picks-item-main"><span class="picks-emoji">${pick.emoji}</span><div class="picks-info"><div class="picks-name">${esc(pick.name)}</div><div class="picks-note">${esc(pick.note)}</div></div><span class="picks-add-icon">+</span></div><button class="picks-x" onclick="dismissPick(event,'${destId}','${pick.id}')" title="Not interested">×</button>`;
+        item.querySelector('.picks-item-main').addEventListener('click',()=>openPickToDay(destId,{name:pick.name,address:pick.name+', '+city,note:pick.note,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`}));
+        wrap.appendChild(item);
+      });
+    }
+    list.appendChild(wrap);
   });
-  if(footer){const n=dismissed.length;footer.textContent=n?`${n} dismissed · ${available.length} remaining`:`${all.length} suggestions`;}
+  if(footer){const n=dismissed.length;footer.textContent=n?`${n} dismissed · ${totalAvail} remaining`:`${totalAll} curated picks`;}
 }
 function dismissPick(e,destId,pickId){
   e.stopPropagation();
   const dismissed=getDismissedPicks(destId);
   if(!dismissed.includes(pickId))dismissed.push(pickId);
   try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
-  const pick=(CITY_PICKS[destId]||[]).find(p=>p.id===pickId);
+  const pick=findPickAcrossCategories(destId,pickId);
   if(pick)addToTrash(destId,{id:pickId,source:'picks',name:pick.name,emoji:pick.emoji,note:pick.note});
   const item=document.querySelector(`#picks-list-${destId} [data-id="${pickId}"]`);
   if(item){item.style.opacity='0';item.style.transform='translateX(8px)';setTimeout(()=>{renderPicks(destId);renderTrash(destId);},200);}
   else{renderPicks(destId);renderTrash(destId);}
 }
 function resetPicks(destId){try{localStorage.removeItem(`dismissed-picks-${destId}`);}catch{}renderPicks(destId);}
+function resetPicksCat(destId,catKey){
+  const catPickIds=((CITY_PICKS[destId]||{})[catKey]||[]).map(p=>p.id);
+  const dismissed=getDismissedPicks(destId).filter(id=>!catPickIds.includes(id));
+  try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
+  renderPicks(destId);
+}
 
 function saveAccessNotes(destId,value){try{localStorage.setItem(`access-${destId}`,value);}catch(_){}}
 function loadAccessNotes(destId){try{return localStorage.getItem(`access-${destId}`)||'';}catch(_){return '';}}
