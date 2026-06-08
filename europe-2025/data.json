@@ -73,6 +73,23 @@
               "flightNumber": "KL1931",
               "confirmationNumber": "Y6NJL9",
               "notes": "Operated by KLM. Boeing 737-800. Economy Class. Arrives Geneva 11:10. Passenger: Gabrielle Stieglitz."
+            },
+            {
+              "id": "ev-1780955493846",
+              "type": "activity",
+              "category": "Activity",
+              "name": "Ouchy Bateaux Location",
+              "subtitle": null,
+              "time": null,
+              "timeLabel": null,
+              "address": "rental · 3 Vieux-Port, Lausanne, Switzerland",
+              "appleMaps": "https://maps.apple.com/?q=Ouchy%20Bateaux%20Location",
+              "googleMaps": "https://www.google.com/maps?q=46.5066566,6.6283545",
+              "website": null,
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
             }
           ],
           "note": "Arrival day -> swimming, exploring town, museums"
