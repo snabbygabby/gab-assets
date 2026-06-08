@@ -83,7 +83,8 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .wish-ac-item:last-child { border-bottom:none; }
 .wish-ac-item:hover { background:var(--sand-light); }
 .wish-ac-name { font-weight:500; margin-bottom:1px; }
-.wish-ac-addr { color:var(--ink-60); font-size:10px; }
+.wish-ac-addr { color:var(--ink-60); font-size:10px; margin-bottom:2px; }
+.wish-ac-cat { display:inline-block; font-size:9px; font-weight:600; letter-spacing:.06em; color:var(--sand); text-transform:uppercase; }
 .wish-list { padding:8px; display:flex; flex-direction:column; gap:5px; min-height:36px; }
 .wish-empty { font-size:10px; color:var(--ink-30); font-style:italic; padding:6px 4px; text-align:center; }
 .wish-item { display:flex; align-items:center; gap:6px; padding:7px 8px; background:var(--cream); border:1px solid var(--rule); border-radius:3px; cursor:grab; transition:border-color .15s, box-shadow .15s; }
@@ -426,6 +427,7 @@ async function fetchPhoton(query){try{const res=await fetch(`https://photon.komo
 function photonName(f){const p=f.properties;return p.name||p.street||'';}
 function photonAddr(f){const p=f.properties;return[p.housenumber&&p.street?`${p.housenumber} ${p.street}`:p.street,p.city,p.country].filter(Boolean).join(', ');}
 function photonFull(f){const p=f.properties;return[p.name,p.housenumber&&p.street?`${p.housenumber} ${p.street}`:p.street,p.city,p.country].filter(Boolean).join(', ');}
+function photonCategory(f){const p=f.properties;const v=p.osm_value||'';const k=p.osm_key||'';const map={restaurant:'🍽 Restaurant',cafe:'☕ Café',bar:'🍸 Bar',pub:'🍺 Pub',fast_food:'🍔 Fast Food',bakery:'🥐 Bakery',ice_cream:'🍦 Ice Cream',hotel:'🏨 Hotel',hostel:'🏨 Hostel',apartment:'🏠 Apartment',museum:'🏛 Museum',gallery:'🎨 Gallery',attraction:'✦ Attraction',viewpoint:'👁 Viewpoint',artwork:'🖼 Artwork',park:'🌿 Park',beach:'🏖 Beach',monument:'🏛 Monument',church:'⛪ Church',cathedral:'⛪ Cathedral',theatre:'🎭 Theatre',cinema:'🎬 Cinema',spa:'🛁 Spa',swimming_pool:'🏊 Pool',shop:'🛍 Shop',supermarket:'🛒 Market',pharmacy:'💊 Pharmacy',station:'🚉 Station',airport:'✈ Airport',ferry_terminal:'⛴ Ferry'};return map[v]||(v&&v!=='yes'?v.charAt(0).toUpperCase()+v.slice(1).replace(/_/g,' '):k&&k!=='place'?k.charAt(0).toUpperCase()+k.slice(1):'');}
 
 // SIDEBAR
 function toggleSidebar(destId){const layout=document.getElementById(`layout-${destId}`);const reveal=document.getElementById(`reveal-${destId}`);const isHidden=layout.classList.toggle('sidebar-hidden');reveal.style.display=isHidden?'flex':'none';try{localStorage.setItem(`sidebar-${destId}`,isHidden?'1':'0');}catch(_){}}
@@ -558,8 +560,9 @@ function setupWishSearch(dest){
         const name=photonName(f);if(!name)return;
         const addr=photonAddr(f);
         const fullAddr=photonFull(f);
+        const cat=photonCategory(f);
         const item=el('div','wish-ac-item');
-        item.innerHTML=`<div class="wish-ac-name">${esc(name)}</div><div class="wish-ac-addr">${esc(addr)}</div>`;
+        item.innerHTML=`<div class="wish-ac-name">${esc(name)}</div>${addr?`<div class="wish-ac-addr">${esc(addr)}</div>`:''} ${cat?`<div class="wish-ac-cat">${esc(cat)}</div>`:''}` ;
         item.addEventListener('mousedown',e2=>{
           e2.preventDefault();
           const wishItem={id:'wish-'+Date.now(),name,address:fullAddr,appleMaps:`https://maps.apple.com/?address=${encodeURIComponent(fullAddr)}&q=${encodeURIComponent(name)}`,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(fullAddr)}`,website:null,notes:null};
