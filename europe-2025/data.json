@@ -157,19 +157,6 @@
           "joinSub": null,
           "events": [
             {
-              "id": "flight-lausanne-nice",
-              "type": "flight",
-              "category": "Flight · Gabby + Griffin",
-              "fromIATA": "GVA",
-              "fromCity": "Geneva",
-              "toIATA": "NCE",
-              "toCity": "Nice",
-              "time": null,
-              "flightNumber": null,
-              "confirmationNumber": null,
-              "notes": "Flight details to be added"
-            },
-            {
               "id": "email-1780954146858-6l8",
               "type": "flight",
               "category": "Flight · LX522",
