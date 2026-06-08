@@ -122,6 +122,13 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .picks-empty { font-size:11px; color:var(--ink-30); text-align:center; padding:16px 10px; font-style:italic; line-height:1.6; }
 .picks-reset { background:none; border:none; cursor:pointer; color:var(--sand); font-size:11px; text-decoration:underline; font-family:'Inter',sans-serif; margin-top:4px; display:block; margin-inline:auto; }
 
+/* EXPLORE CATEGORY CHIPS */
+.picks-chips { display:flex; gap:5px; padding:8px 8px 6px; overflow-x:auto; border-bottom:1px solid var(--rule); -webkit-overflow-scrolling:touch; scrollbar-width:none; flex-wrap:wrap; }
+.picks-chips::-webkit-scrollbar { display:none; }
+.picks-chip { flex-shrink:0; padding:4px 10px; border:1px solid var(--rule); border-radius:99px; font-size:10px; font-weight:500; color:var(--ink-60); background:var(--white); cursor:pointer; transition:all .15s; white-space:nowrap; font-family:'Inter',sans-serif; line-height:1.4; }
+.picks-chip:hover { border-color:var(--sand); color:var(--ink); }
+.picks-chip.active { background:var(--ink); border-color:var(--ink); color:#fff; }
+
 /* PICKS SEARCH */
 .picks-search-row { padding:7px 8px 6px; border-bottom:1px solid var(--rule); }
 .picks-search-input { width:100%; border:1px solid var(--rule); border-radius:3px; padding:7px 10px; font-size:12px; font-family:'Inter',sans-serif; color:var(--ink); background:var(--cream); outline:none; transition:border-color .15s; }
@@ -498,7 +505,12 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
         <div class="wish-preview-name" id="w-place-name"></div>
         <div class="wish-preview-addr" id="w-place-addr"></div>
       </div>
-      <form id="wish-form" onsubmit="confirmWishSubmit(event)">
+      <form id="wish-form" onsubmit="confirmAddToDay(event)">
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Day *</label>
+            <select class="form-select" id="w-day" required></select>
+          </div>
+        </div>
         <div class="form-row cols-2">
           <div class="form-field"><label class="form-label">Category</label>
             <select class="form-select" id="w-cat">
@@ -518,11 +530,7 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
             <input class="form-input" id="w-notes" type="text" placeholder="Any details…">
           </div>
         </div>
-        <div class="wish-keep-row">
-          <input type="checkbox" id="w-keep">
-          <label for="w-keep">Keep in wishlist too</label>
-        </div>
-        <button class="form-submit" type="submit" id="w-submit">Add to day</button>
+        <button class="form-submit" type="submit" id="w-submit">Add to Itinerary</button>
       </form>
     </div>
   </div>
@@ -576,7 +584,17 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 const CFG={repo:'snabbygabby/gab-assets',path:'europe-2025/data.json',rawUrl:'https://raw.githubusercontent.com/snabbygabby/gab-assets/main/europe-2025/data.json'};
 const S={data:null,editMode:null,pendingWish:null};
 const PIN=`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
-let dragWish=null;
+const EXPLORE_CHIPS=[
+  {label:'🍷 Wine & Spirits',q:'winery wine bar'},
+  {label:'🍽 Dinner',q:'restaurant dinner'},
+  {label:'☕ Coffee & Cafés',q:'cafe coffee pastry'},
+  {label:'🏖 Beach & Swimming',q:'beach swimming lake'},
+  {label:'🎨 Art & Museums',q:'museum gallery art'},
+  {label:'🌿 Nature & Hikes',q:'park garden hike viewpoint'},
+  {label:'🛍 Shopping',q:'shopping boutique market'},
+  {label:'🎵 Bars & Nightlife',q:'bar cocktail nightclub'},
+  {label:'🏰 Historic Sights',q:'historic monument castle church'},
+];
 
 // TOKEN
 function getToken(){return localStorage.getItem('gh-pat');}
@@ -773,33 +791,47 @@ function restoreFromTrash(destId,itemId){
   const trash=getTrash(destId);
   const item=trash.find(t=>t.id===itemId);if(!item)return;
   try{localStorage.setItem(`trash-${destId}`,JSON.stringify(trash.filter(t=>t.id!==itemId)));}catch{}
-  if(item.source==='picks'){
-    const dismissed=getDismissedPicks(destId).filter(id=>id!==itemId);
-    try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
-    renderPicks(destId);renderTrash(destId);showToast(`${item.name} restored to Explore ✓`);
-  }else{
-    const wishItem={id:'wish-'+Date.now(),name:item.name,address:item.address||null,appleMaps:item.appleMaps||null,googleMaps:item.googleMaps||null,website:item.website||null,notes:item.notes||null};
-    addToWishlist(destId,wishItem);renderTrash(destId);
-  }
+  const dismissed=getDismissedPicks(destId).filter(id=>id!==itemId);
+  try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
+  renderPicks(destId);renderTrash(destId);showToast(`${item.name} restored ✓`);
 }
 
-// PICKS SEARCH — Photon with city bias, results link to Google Maps
+// HAVERSINE — distance in km between two lat/lon points
+function haversineKm(lat1,lon1,lat2,lon2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+const MAX_DIST_KM=160.934; // 100 miles
+
+// EXPLORE CATEGORY CHIPS
+function chipSearch(destId,q,chipEl){
+  const input=document.getElementById(`picks-search-${destId}`);
+  if(input)input.value=q;
+  document.querySelectorAll(`#picks-chips-${destId} .picks-chip`).forEach(c=>c.classList.remove('active'));
+  if(chipEl)chipEl.classList.add('active');
+  searchPicks(destId);
+}
+
+// PICKS SEARCH — Photon with city bias + 100-mile radius filter
 async function searchPicks(destId){
   const input=document.getElementById(`picks-search-${destId}`);
   const results=document.getElementById(`picks-search-results-${destId}`);
   const divider=document.getElementById(`picks-divider-${destId}`);
   if(!input||!results)return;
   const q=input.value.trim();
-  if(!q){results.innerHTML='';if(divider)divider.style.display='none';return;}
+  if(!q){results.innerHTML='';if(divider)divider.style.display='';return;}
   results.innerHTML='<div class="picks-search-status">Searching…</div>';
   const c=CITY_COORDS[destId]||{};
-  const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lang=en${c.lat?`&lat=${c.lat}&lon=${c.lon}`:''}`;
+  const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=30&lang=en${c.lat?`&lat=${c.lat}&lon=${c.lon}`:''}`;
   try{
     const res=await fetch(url);const d=await res.json();
-    const features=(d.features||[]).filter(f=>photonName(f));
+    // Filter: must have a name AND be within 100 miles of city center
+    const features=(d.features||[]).filter(f=>{
+      if(!photonName(f))return false;
+      const[lon,lat]=f.geometry?.coordinates||[];
+      if(!lat||!lon||!c.lat)return true;
+      return haversineKm(c.lat,c.lon,lat,lon)<=MAX_DIST_KM;
+    }).slice(0,12);
     results.innerHTML='';
-    if(divider)divider.style.display=features.length?'':'none';
-    if(!features.length){results.innerHTML='<div class="picks-search-status">No results — try a different term</div>';return;}
+    if(divider)divider.style.display=features.length?'':'';
+    if(!features.length){results.innerHTML='<div class="picks-search-status">No results nearby — try a different term</div>';return;}
     features.forEach(f=>{
       const name=photonName(f);
       const cat=photonCategory(f);const addr=photonAddr(f);const full=photonFull(f);
@@ -810,19 +842,16 @@ async function searchPicks(destId){
       const meta=[catLabel,addr].filter(Boolean).join(' · ');
       const item=el('div','picks-search-item');
       item.innerHTML=`<div class="picks-search-item-main"><span class="picks-search-emoji">${catEmoji}</span><div class="picks-search-info"><div class="picks-search-name">${esc(name)}</div><div class="picks-search-meta">${esc(meta)}</div></div><span class="picks-add-icon">+</span></div><a class="picks-search-ext" href="${esc(mapsUrl)}" target="_blank" title="Open in Google Maps">↗</a>`;
-      item.querySelector('.picks-search-item-main').addEventListener('click',()=>{
-        const wishItem={id:'wish-'+Date.now(),name,address:full||addr,appleMaps:`https://maps.apple.com/?q=${encodeURIComponent(name)}`,googleMaps:mapsUrl,website:null,notes:null};
-        addToWishlist(destId,wishItem);
-      });
+      item.querySelector('.picks-search-item-main').addEventListener('click',()=>openPickToDay(destId,{name,address:full||addr,googleMaps:mapsUrl}));
       results.appendChild(item);
     });
-  }catch{results.innerHTML='<div class="picks-search-status">Search failed</div>';if(divider)divider.style.display='none';}
+  }catch{results.innerHTML='<div class="picks-search-status">Search failed</div>';}
 }
 function setupPicksSearch(destId){
   const input=document.getElementById(`picks-search-${destId}`);if(!input)return;
   let timer=null;
-  input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>searchPicks(destId),260);});
-  input.addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(timer);searchPicks(destId);}});
+  input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>searchPicks(destId),280);});
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(timer);searchPicks(destId);}if(e.key==='Escape'){input.value='';searchPicks(destId);document.querySelectorAll(`#picks-chips-${destId} .picks-chip`).forEach(c=>c.classList.remove('active'));}});
 }
 
 // PICKS FUNCTIONS
@@ -841,7 +870,10 @@ function renderPicks(destId){
   }
   available.forEach(pick=>{
     const item=el('div','picks-item');item.dataset.id=pick.id;
-    item.innerHTML=`<div class="picks-item-main" onclick="addPickToWishlist('${destId}','${pick.id}')"><span class="picks-emoji">${pick.emoji}</span><div class="picks-info"><div class="picks-name">${esc(pick.name)}</div><div class="picks-note">${esc(pick.note)}</div></div><span class="picks-add-icon">+</span></div><button class="picks-x" onclick="dismissPick(event,'${destId}','${pick.id}')" title="Not interested">×</button>`;
+    item.innerHTML=`<div class="picks-item-main"><span class="picks-emoji">${pick.emoji}</span><div class="picks-info"><div class="picks-name">${esc(pick.name)}</div><div class="picks-note">${esc(pick.note)}</div></div><span class="picks-add-icon">+</span></div><button class="picks-x" onclick="dismissPick(event,'${destId}','${pick.id}')" title="Not interested">×</button>`;
+    const dest=S.data?.destinations.find(d=>d.id===destId);
+    const city=dest?dest.city:destId;
+    item.querySelector('.picks-item-main').addEventListener('click',()=>openPickToDay(destId,{name:pick.name,address:pick.name+', '+city,note:pick.note,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`}));
     list.appendChild(item);
   });
   if(footer){const n=dismissed.length;footer.textContent=n?`${n} dismissed · ${available.length} remaining`:`${all.length} suggestions`;}
@@ -857,76 +889,46 @@ function dismissPick(e,destId,pickId){
   if(item){item.style.opacity='0';item.style.transform='translateX(8px)';setTimeout(()=>{renderPicks(destId);renderTrash(destId);},200);}
   else{renderPicks(destId);renderTrash(destId);}
 }
-function addPickToWishlist(destId,pickId){
-  const pick=(CITY_PICKS[destId]||[]).find(p=>p.id===pickId);if(!pick)return;
-  const dest=S.data.destinations.find(d=>d.id===destId);
-  const city=dest?dest.city:destId;
-  const wishItem={id:'wish-'+Date.now(),name:pick.name,address:pick.name+', '+city,appleMaps:`https://maps.apple.com/?q=${encodeURIComponent(pick.name+' '+city)}`,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`,website:null,notes:pick.note||null};
-  addToWishlist(destId,wishItem);
-}
 function resetPicks(destId){try{localStorage.removeItem(`dismissed-picks-${destId}`);}catch{}renderPicks(destId);}
 
 function saveAccessNotes(destId,value){try{localStorage.setItem(`access-${destId}`,value);}catch(_){}}
 function loadAccessNotes(destId){try{return localStorage.getItem(`access-${destId}`)||'';}catch(_){return '';}}
 
-// WISHLIST
-async function addToWishlist(destId,wishItem){
-  const data=JSON.parse(JSON.stringify(S.data));
-  for(const dest of data.destinations)if(dest.id===destId){if(!dest.wishlist)dest.wishlist=[];dest.wishlist.push(wishItem);break;}
-  try{await ghPut(data,`Add ${wishItem.name} to ${destId} wishlist`);S.data=data;refreshWishlist(destId);showToast(`${wishItem.name} added to wishlist ✓`);}
-  catch(err){showToast(err.message,true);}
-}
-async function removeFromWishlist(destId,wishId){
-  if(!confirm('Remove from wishlist?'))return;
-  const srcDest=S.data.destinations.find(d=>d.id===destId);
-  const srcItem=srcDest?.wishlist?.find(w=>w.id===wishId);
-  if(srcItem)addToTrash(destId,{...srcItem,source:'wishlist'});
-  const data=JSON.parse(JSON.stringify(S.data));
-  for(const dest of data.destinations)if(dest.id===destId){dest.wishlist=(dest.wishlist||[]).filter(w=>w.id!==wishId);break;}
-  try{await ghPut(data,`Remove from ${destId} wishlist`);S.data=data;refreshWishlist(destId);renderTrash(destId);showToast('Removed ✓');}
-  catch(err){showToast(err.message,true);}
-}
-function refreshWishlist(destId){
-  const list=document.getElementById(`wish-list-${destId}`);
-  if(!list)return;
-  list.innerHTML='';
-  const dest=S.data.destinations.find(d=>d.id===destId);
-  const items=dest?.wishlist||[];
-  if(!items.length){const e=el('div','wish-empty');e.textContent='Search above to add places';list.appendChild(e);}
-  else items.forEach(item=>list.appendChild(renderWishItem(item,destId)));
-}
-
-function openWishToDay(destId,wishItem,dayId){
-  S.pendingWish={destId,wishId:wishItem.id,dayId,item:wishItem};
-  let dayLabel=dayId;
-  for(const dest of S.data.destinations)for(const day of dest.days)if(day.id===dayId){dayLabel=day.label;break;}
-  document.getElementById('wish-modal-title').textContent=`Add to ${dayLabel}`;
-  document.getElementById('w-place-name').textContent=wishItem.name;
-  document.getElementById('w-place-addr').textContent=wishItem.address||'';
+// EXPLORE → ADD TO DAY
+function openPickToDay(destId,item){
+  S.pendingWish={destId,item};
+  document.getElementById('wish-modal-title').textContent='Add to Itinerary';
+  document.getElementById('w-place-name').textContent=item.name;
+  document.getElementById('w-place-addr').textContent=item.address||item.note||'';
   document.getElementById('w-cat').value='activity';
   document.getElementById('w-time').value='';
   document.getElementById('w-notes').value='';
-  document.getElementById('w-keep').checked=false;
+  populateWishDaySelect(destId);
   document.getElementById('wish-overlay').classList.add('open');
 }
-
-async function confirmWishSubmit(e){
+function populateWishDaySelect(destId){
+  const sel=document.getElementById('w-day');sel.innerHTML='<option value="">Pick a day…</option>';
+  if(!S.data)return;
+  const dest=S.data.destinations.find(d=>d.id===destId);if(!dest)return;
+  dest.days.forEach(day=>{const o=document.createElement('option');o.value=day.id;o.textContent=day.label;sel.appendChild(o);});
+}
+async function confirmAddToDay(e){
   e.preventDefault();
   if(!S.pendingWish)return;
-  const{destId,wishId,dayId,item}=S.pendingWish;
+  const{destId,item}=S.pendingWish;
+  const dayId=document.getElementById('w-day').value;if(!dayId)return showToast('Pick a day',true);
   const cat=document.getElementById('w-cat').value;
   const time=document.getElementById('w-time').value.trim();
   const notes=document.getElementById('w-notes').value.trim();
-  const keep=document.getElementById('w-keep').checked;
   const label={restaurant:'Restaurant',activity:'Activity',accommodation:'Accommodation',highlight:'Highlight',other:''}[cat]||'';
-  const event={id:'ev-'+Date.now(),type:cat,category:label,name:item.name,subtitle:notes||null,time:time||null,timeLabel:null,address:item.address||null,appleMaps:item.appleMaps||null,googleMaps:item.googleMaps||null,website:item.website||null,menu:null,photo:null,confirmationNumber:null,notes:null};
+  const addr=item.address||null;
+  const event={id:'ev-'+Date.now(),type:cat,category:label,name:item.name,subtitle:notes||null,time:time||null,timeLabel:null,address:addr,appleMaps:addr?`https://maps.apple.com/?q=${encodeURIComponent(item.name)}`:null,googleMaps:item.googleMaps||null,website:item.website||null,menu:null,photo:null,confirmationNumber:null,notes:null};
   const data=JSON.parse(JSON.stringify(S.data));
   for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);break;}
-  if(!keep)for(const dest of data.destinations)if(dest.id===destId){dest.wishlist=(dest.wishlist||[]).filter(w=>w.id!==wishId);break;}
   const btn=document.getElementById('w-submit');btn.disabled=true;btn.textContent='Saving…';
   try{await ghPut(data,`Add ${item.name} to ${dayId}`);S.data=data;render(data);closeModal('wish-overlay');showToast(`${item.name} added ✓`);}
   catch(err){showToast(err.message,true);}
-  finally{btn.disabled=false;btn.textContent='Add to day';S.pendingWish=null;}
+  finally{btn.disabled=false;btn.textContent='Add to Itinerary';S.pendingWish=null;}
 }
 
 // DATA
@@ -938,9 +940,7 @@ function render(data){
   data.destinations.forEach((dest,i)=>{
     if(i>0){const d=el('div','dest-div');d.innerHTML=`<span class="dest-div-label">Côte d'Azur</span>`;main.appendChild(d);}
     main.appendChild(renderDest(dest));
-    // Elements are now in the DOM — safe to wire up wishlist + picks + trash
-    refreshWishlist(dest.id);
-    setupWishSearch(dest);
+    // Elements are now in the DOM — safe to wire up picks + trash
     renderPicks(dest.id);
     renderTrash(dest.id);
     setupPicksSearch(dest.id);
@@ -967,16 +967,10 @@ function renderDest(dest){
   accomCard.innerHTML=`<div class="accom-card-top" onclick="toggleSection('accom','${dest.id}')"><div class="accom-section-tag">Home Base</div><span class="section-chevron" id="chevron-accom-${dest.id}">${accomOpen?'▾':'▸'}</span></div><div id="accom-body-${dest.id}" style="${accomOpen?'':'display:none'}"><div class="accom-address-block"><div class="accom-address-text">${esc(dest.accommodation.address)}</div><div class="accom-map-links"><a class="map-btn" href="${esc(dest.accommodation.appleMaps)}" target="_blank">${PIN} Apple Maps</a><a class="map-btn" href="${esc(dest.accommodation.googleMaps)}" target="_blank">${PIN} Google Maps</a></div></div><div class="accom-notes-block"><div class="accom-notes-label">Access Info</div><textarea class="accom-notes-area" placeholder="Door code, WiFi, check-in time, host contact…" oninput="saveAccessNotes('${dest.id}',this.value)">${esc(savedNotes)}</textarea><div class="accom-notes-hint">Stays on this device only.</div></div></div>`;
   sidebar.appendChild(accomCard);
 
-  // --- Places to Visit ---
-  const wishOpen=sectionOpen('wish',dest.id);
-  const wishCard=el('div','wish-card');
-  wishCard.innerHTML=`<div class="wish-card-top" onclick="toggleSection('wish','${dest.id}')"><div class="wish-tag">Places to Visit</div><span class="section-chevron" id="chevron-wish-${dest.id}">${wishOpen?'▾':'▸'}</span></div><div id="wish-body-${dest.id}" style="${wishOpen?'':'display:none'}"><div class="wish-search-row"><input class="wish-search" id="wish-search-${dest.id}" type="text" placeholder="Search places in ${esc(dest.city)}…" autocomplete="off"><div class="wish-ac-list" id="wish-ac-${dest.id}"></div></div><div class="wish-list" id="wish-list-${dest.id}"></div></div>`;
-  sidebar.appendChild(wishCard);
-
-  // --- Top Picks ---
+  // --- Explore (search + curated picks) ---
   const picksOpen=sectionOpen('picks',dest.id);
   const picksCard=el('div','picks-card');
-  picksCard.innerHTML=`<div class="picks-card-top" onclick="toggleSection('picks','${dest.id}')"><div class="picks-tag">Explore ${esc(dest.city)}</div><span class="section-chevron" id="chevron-picks-${dest.id}">${picksOpen?'▾':'▸'}</span></div><div id="picks-body-${dest.id}" style="${picksOpen?'':'display:none'}"><div class="picks-search-row"><input class="picks-search-input" id="picks-search-${dest.id}" type="text" placeholder="Search wineries, dinner spots…" autocomplete="off"></div><div class="picks-search-results" id="picks-search-results-${dest.id}"></div><div class="picks-divider" id="picks-divider-${dest.id}" style="display:none">Top Picks</div><div class="picks-list" id="picks-list-${dest.id}"></div><div class="picks-footer" id="picks-footer-${dest.id}"></div></div>`;
+  picksCard.innerHTML=`<div class="picks-card-top" onclick="toggleSection('picks','${dest.id}')"><div class="picks-tag">Explore ${esc(dest.city)}</div><span class="section-chevron" id="chevron-picks-${dest.id}">${picksOpen?'▾':'▸'}</span></div><div id="picks-body-${dest.id}" style="${picksOpen?'':'display:none'}"><div class="picks-chips" id="picks-chips-${dest.id}">${EXPLORE_CHIPS.map(c=>`<button class="picks-chip" onclick="chipSearch('${dest.id}','${c.q}',this)">${c.label}</button>`).join('')}</div><div class="picks-search-row"><input class="picks-search-input" id="picks-search-${dest.id}" type="text" placeholder="Or search anything…" autocomplete="off"></div><div class="picks-search-results" id="picks-search-results-${dest.id}"></div><div class="picks-divider" id="picks-divider-${dest.id}" style="display:none">Top Picks</div><div class="picks-list" id="picks-list-${dest.id}"></div><div class="picks-footer" id="picks-footer-${dest.id}"></div></div>`;
   sidebar.appendChild(picksCard);
 
   // --- Recently Removed ---
@@ -997,59 +991,6 @@ function renderDest(dest){
   return frag;
 }
 
-function setupWishSearch(dest){
-  const input=document.getElementById(`wish-search-${dest.id}`);
-  const acList=document.getElementById(`wish-ac-${dest.id}`);
-  if(!input||!acList)return;
-  let timer=null;
-  input.addEventListener('input',()=>{
-    clearTimeout(timer);const q=input.value.trim();
-    if(q.length<2){acList.style.display='none';return;}
-    timer=setTimeout(async()=>{
-      const features=await fetchPhoton(q+' '+dest.city);
-      acList.innerHTML='';
-      if(!features.length){acList.style.display='none';return;}
-      features.forEach(f=>{
-        const name=photonName(f);if(!name)return;
-        const addr=photonAddr(f);
-        const fullAddr=photonFull(f);
-        const cat=photonCategory(f);
-        const item=el('div','wish-ac-item');
-        item.innerHTML=`<div class="wish-ac-name">${esc(name)}</div>${addr?`<div class="wish-ac-addr">${esc(addr)}</div>`:''} ${cat?`<div class="wish-ac-cat">${esc(cat)}</div>`:''}` ;
-        item.addEventListener('mousedown',e2=>{
-          e2.preventDefault();
-          const wishItem={id:'wish-'+Date.now(),name,address:fullAddr,appleMaps:`https://maps.apple.com/?address=${encodeURIComponent(fullAddr)}&q=${encodeURIComponent(name)}`,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(fullAddr)}`,website:null,notes:null};
-          input.value='';acList.style.display='none';
-          addToWishlist(dest.id,wishItem);
-        });
-        acList.appendChild(item);
-      });
-      acList.style.display='block';
-    },200);
-  });
-  input.addEventListener('blur',()=>setTimeout(()=>acList.style.display='none',160));
-}
-
-function renderWishItem(item,destId){
-  const wishEl=el('div','wish-item');
-  wishEl.draggable=true;
-  wishEl.dataset.wishId=item.id;
-  wishEl.innerHTML=`<span class="wish-handle">⠿</span><div class="wish-info"><div class="wish-name">${esc(item.name)}</div>${item.address?`<div class="wish-addr">${esc(item.address.split(',')[0])}</div>`:''}</div><button class="wish-del" title="Remove">×</button>`;
-  wishEl.querySelector('.wish-del').onclick=e=>{e.stopPropagation();removeFromWishlist(destId,item.id);};
-  wishEl.addEventListener('dragstart',e=>{
-    dragWish={item,destId};
-    wishEl.classList.add('is-dragging');
-    e.dataTransfer.effectAllowed='move';
-    e.dataTransfer.setData('text/plain','wish');
-    document.querySelectorAll('.grid[data-day]').forEach(g=>g.classList.add('wish-over'));
-  });
-  wishEl.addEventListener('dragend',()=>{
-    wishEl.classList.remove('is-dragging');
-    dragWish=null;
-    document.querySelectorAll('.grid.wish-over').forEach(g=>g.classList.remove('wish-over'));
-  });
-  return wishEl;
-}
 
 function renderDay(day){
   const dayEl=el('div','day');
@@ -1064,14 +1005,6 @@ function renderDay(day){
   noteWrap.appendChild(noteInput);dayEl.appendChild(noteWrap);
   const grid=el('div','grid');grid.dataset.day=day.id;
 
-  // Accept wishlist drops on the grid itself
-  grid.addEventListener('dragover',e=>{if(dragWish){e.preventDefault();e.dataTransfer.dropEffect='move';}});
-  grid.addEventListener('drop',e=>{
-    if(!dragWish)return;
-    e.preventDefault();e.stopPropagation();
-    document.querySelectorAll('.grid.wish-over').forEach(g=>g.classList.remove('wish-over'));
-    openWishToDay(dragWish.destId,dragWish.item,day.id);
-  });
 
   day.events.forEach(event=>grid.appendChild(renderEvent(event,day.id)));
   const ph=el('div','card placeholder');
@@ -1174,17 +1107,11 @@ function initDrag(){
     c.addEventListener('dragstart',e=>{dragSrc=c;c.classList.add('is-dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','card');});
     c.addEventListener('dragend',()=>{c.classList.remove('is-dragging');document.querySelectorAll('.card.is-over').forEach(x=>x.classList.remove('is-over'));dragSrc=null;});
     c.addEventListener('dragover',e=>{
-      if(dragWish){e.preventDefault();return;}
       e.preventDefault();if(dragSrc&&dragSrc!==c&&c.draggable)c.classList.add('is-over');
     });
     c.addEventListener('dragleave',()=>c.classList.remove('is-over'));
     c.addEventListener('drop',e=>{
       e.preventDefault();e.stopPropagation();c.classList.remove('is-over');
-      if(dragWish){
-        const dayId=c.closest('.grid')?.dataset.day;
-        if(dayId){document.querySelectorAll('.grid.wish-over').forEach(g=>g.classList.remove('wish-over'));openWishToDay(dragWish.destId,dragWish.item,dayId);}
-        return;
-      }
       if(!dragSrc||dragSrc===c)return;
       const g=c.closest('.grid');if(!g||g!==dragSrc.closest('.grid'))return;
       const all=[...g.querySelectorAll('.card')];
