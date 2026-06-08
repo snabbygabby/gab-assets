@@ -156,13 +156,22 @@
       ],
       "wishlist": [
         {
-          "id": "wish-1780943348021",
+          "id": "wish-1780943346788",
           "name": "Lavaux Vineyards",
           "address": "Lavaux Vineyards, Lausanne",
           "appleMaps": "https://maps.apple.com/?q=Lavaux%20Vineyards%20Lausanne",
           "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%20Lausanne",
           "website": null,
           "notes": "UNESCO wine terraces, 30 min away"
+        },
+        {
+          "id": "wish-1780943349289",
+          "name": "Escaliers du Marché",
+          "address": "Escaliers du Marché, Lausanne",
+          "appleMaps": "https://maps.apple.com/?q=Escaliers%20du%20March%C3%A9%20Lausanne",
+          "googleMaps": "https://www.google.com/maps/search/Escaliers%20du%20March%C3%A9%20Lausanne",
+          "website": null,
+          "notes": "Covered medieval stairway"
         }
       ]
     },
