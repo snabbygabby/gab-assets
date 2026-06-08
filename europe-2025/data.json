@@ -123,6 +123,23 @@
               "flightNumber": null,
               "confirmationNumber": null,
               "notes": "Flight details to be added"
+            },
+            {
+              "id": "email-1780877220524-60f",
+              "type": "restaurant",
+              "category": "Restaurant",
+              "name": "Eden-Roc Restaurant",
+              "subtitle": "Reservation for 2 guests. Dress code: no tank tops. Priority barrier seating reserved for hotel guests. Cancellation fee of 150€ per person for cancellations less than 24 hours prior for parties of 1-8 guests. No pets. No commercial photography.",
+              "time": "15:00",
+              "timeLabel": null,
+              "address": "Boulevard John Fitzgerald Kennedy Antibes, 06160 France",
+              "appleMaps": "https://maps.apple.com/?address=Boulevard%20John%20Fitzgerald%20Kennedy%20Antibes%2C%2006160%20France&q=Eden-Roc%20Restaurant",
+              "googleMaps": "https://www.google.com/maps/search/Boulevard%20John%20Fitzgerald%20Kennedy%20Antibes%2C%2006160%20France",
+              "website": "https://www.oetkercollection.com/hotels/hotel-du-cap-eden-roc/restaurants-bars/restaurants/eden-roc-restaurant/",
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
             }
           ]
         }
@@ -155,7 +172,25 @@
           "join": false,
           "joinTitle": null,
           "joinSub": null,
-          "events": []
+          "events": [
+            {
+              "id": "email-1780877220524-60f",
+              "type": "restaurant",
+              "category": "Restaurant",
+              "name": "Eden-Roc Restaurant",
+              "subtitle": "Reservation for 2 guests. Dress code: no tank tops. Priority barrier seating reserved for hotel guests. Cancellation fee of 150€ per person for cancellations less than 24 hours prior for parties of 1-8 guests. No pets. No commercial photography.",
+              "time": "15:00",
+              "timeLabel": null,
+              "address": "Boulevard John Fitzgerald Kennedy Antibes, 06160 France",
+              "appleMaps": "https://maps.apple.com/?address=Boulevard%20John%20Fitzgerald%20Kennedy%20Antibes%2C%2006160%20France&q=Eden-Roc%20Restaurant",
+              "googleMaps": "https://www.google.com/maps/search/Boulevard%20John%20Fitzgerald%20Kennedy%20Antibes%2C%2006160%20France",
+              "website": "https://www.oetkercollection.com/hotels/hotel-du-cap-eden-roc/restaurants-bars/restaurants/eden-roc-restaurant/",
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
+            }
+          ]
         },
         {
           "id": "2026-07-14",
