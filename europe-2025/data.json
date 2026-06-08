@@ -91,7 +91,8 @@
               "confirmationNumber": "Y6NJL9",
               "notes": "Operated by KLM. Boeing 737-800. Economy Class. Arrives Geneva 11:10. Passenger: Gabrielle Stieglitz."
             }
-          ]
+          ],
+          "note": "test"
         },
         {
           "id": "2026-07-10",
