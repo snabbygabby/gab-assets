@@ -45,19 +45,15 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 
 /* LAYOUT */
 .wrap { max-width:1440px; margin:0 auto; padding:0 48px; }
-.dest-layout { display:grid; grid-template-columns:var(--sidebar-w) 1fr; gap:40px; align-items:start; transition:grid-template-columns .35s cubic-bezier(.4,0,.2,1); }
-.dest-layout.sidebar-hidden { grid-template-columns:0px 1fr; }
+.dest-layout { display:grid; grid-template-columns:var(--sidebar-w) 1fr; gap:40px; align-items:start; }
 
 /* SIDEBAR */
-.accom-sidebar { position:sticky; top:58px; max-height:calc(100vh - 70px); overflow-y:auto; overflow-x:hidden; padding-top:44px; transition:opacity .3s; }
-.dest-layout.sidebar-hidden .accom-sidebar { opacity:0; pointer-events:none; }
+.accom-sidebar { position:sticky; top:58px; max-height:calc(100vh - 70px); overflow-y:auto; overflow-x:hidden; padding-top:44px; }
 
 /* ACCOM CARD */
 .accom-card { background:var(--white); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--sh-sm); overflow:hidden; }
-.accom-card-top { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
+.accom-card-top { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-radius:3px; }
 .accom-section-tag { font-size:8px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--sand); }
-.accom-hide-btn { font-size:10px; font-weight:500; color:var(--ink-30); background:none; border:none; cursor:pointer; padding:3px 7px; border-radius:3px; transition:all .15s; }
-.accom-hide-btn:hover { color:var(--ink); background:var(--cream); }
 .accom-address-block { padding:0 16px 14px; border-bottom:1px solid var(--rule); }
 .accom-address-text { font-family:'Playfair Display',serif; font-style:italic; font-size:14px; color:var(--ink); line-height:1.4; margin-bottom:12px; }
 .accom-map-links { display:flex; flex-direction:column; gap:7px; }
@@ -98,10 +94,12 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .wish-del:hover { color:var(--red); }
 .grid.wish-over { outline:2px dashed var(--sand); outline-offset:3px; border-radius:3px; }
 
-/* SIDEBAR REVEAL */
-.sidebar-reveal { display:none; align-items:center; gap:6px; font-size:10px; font-weight:500; color:var(--ink-30); background:none; border:1px solid var(--rule); border-radius:99px; padding:5px 14px; cursor:pointer; margin-bottom:24px; transition:all .15s; }
-.sidebar-reveal:hover { border-color:var(--sand); color:var(--ink); }
-.dest-layout.sidebar-hidden .sidebar-reveal { display:flex; }
+/* SECTION TOGGLE HEADERS */
+.accom-card-top { cursor:pointer; transition:background .15s; }
+.accom-card-top:hover { background:var(--cream); }
+.wish-card-top { cursor:pointer; transition:background .15s; }
+.wish-card-top:hover { background:var(--cream); }
+.section-chevron { font-size:11px; color:var(--ink-30); line-height:1; flex-shrink:0; }
 
 /* DAYS */
 .days-content { min-width:0; }
@@ -246,9 +244,8 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 /* RESPONSIVE — TABLET */
 @media (max-width:1100px) { :root{--sidebar-w:200px;} .dest-layout{gap:24px;} }
 @media (max-width:860px) {
-  .dest-layout,.dest-layout.sidebar-hidden { grid-template-columns:1fr; }
+  .dest-layout { grid-template-columns:1fr; }
   .accom-sidebar { position:static; max-height:none; padding-top:20px; }
-  .dest-layout.sidebar-hidden .accom-sidebar { display:none; }
   .hero{height:320px;} .hero-city{font-size:48px;} .hero-content{padding:32px 28px;}
   .wrap{padding:0 24px;} .nav{padding:0 24px;}
   .grid{grid-template-columns:1fr 1fr; gap:10px;} .day-num{font-size:44px;}
@@ -277,9 +274,6 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 
   /* Layout */
   .wrap { padding:0 14px; }
-
-  /* Sidebar reveal button: full-width, prominent */
-  .sidebar-reveal { width:100%; justify-content:center; padding:10px 14px; font-size:11px; margin-bottom:16px; border-radius:3px; }
 
   /* Days */
   .day { padding:22px 0 6px; }
@@ -510,8 +504,21 @@ function photonAddr(f){const p=f.properties;return[p.housenumber&&p.street?`${p.
 function photonFull(f){const p=f.properties;return[p.name,p.housenumber&&p.street?`${p.housenumber} ${p.street}`:p.street,p.city,p.country].filter(Boolean).join(', ');}
 function photonCategory(f){const p=f.properties;const v=p.osm_value||'';const k=p.osm_key||'';const map={restaurant:'🍽 Restaurant',cafe:'☕ Café',bar:'🍸 Bar',pub:'🍺 Pub',fast_food:'🍔 Fast Food',bakery:'🥐 Bakery',ice_cream:'🍦 Ice Cream',hotel:'🏨 Hotel',hostel:'🏨 Hostel',apartment:'🏠 Apartment',museum:'🏛 Museum',gallery:'🎨 Gallery',attraction:'✦ Attraction',viewpoint:'👁 Viewpoint',artwork:'🖼 Artwork',park:'🌿 Park',beach:'🏖 Beach',monument:'🏛 Monument',church:'⛪ Church',cathedral:'⛪ Cathedral',theatre:'🎭 Theatre',cinema:'🎬 Cinema',spa:'🛁 Spa',swimming_pool:'🏊 Pool',shop:'🛍 Shop',supermarket:'🛒 Market',pharmacy:'💊 Pharmacy',station:'🚉 Station',airport:'✈ Airport',ferry_terminal:'⛴ Ferry'};return map[v]||(v&&v!=='yes'?v.charAt(0).toUpperCase()+v.slice(1).replace(/_/g,' '):k&&k!=='place'?k.charAt(0).toUpperCase()+k.slice(1):'');}
 
-// SIDEBAR
-function toggleSidebar(destId){const layout=document.getElementById(`layout-${destId}`);const reveal=document.getElementById(`reveal-${destId}`);const isHidden=layout.classList.toggle('sidebar-hidden');reveal.style.display=isHidden?'flex':'none';try{localStorage.setItem(`sidebar-${destId}`,isHidden?'1':'0');}catch(_){}}
+// SECTION TOGGLES — each card collapses independently
+function toggleSection(type,destId){
+  const body=document.getElementById(`${type}-body-${destId}`);
+  const chevron=document.getElementById(`chevron-${type}-${destId}`);
+  if(!body)return;
+  const willOpen=body.style.display==='none';
+  body.style.display=willOpen?'':'none';
+  if(chevron)chevron.textContent=willOpen?'▾':'▸';
+  try{localStorage.setItem(`sec-${type}-${destId}`,willOpen?'1':'0');}catch(_){}
+}
+function sectionOpen(type,destId){
+  const saved=localStorage.getItem(`sec-${type}-${destId}`);
+  // default: open on desktop, closed on mobile
+  return saved!==null?saved==='1':window.innerWidth>=700;
+}
 function saveAccessNotes(destId,value){try{localStorage.setItem(`access-${destId}`,value);}catch(_){}}
 function loadAccessNotes(destId){try{return localStorage.getItem(`access-${destId}`)||'';}catch(_){return '';}}
 
@@ -596,20 +603,21 @@ function renderDest(dest){
 
   const wrap=el('div','wrap');
   const layout=el('div','dest-layout');layout.id=`layout-${dest.id}`;
-  const savedPref=localStorage.getItem(`sidebar-${dest.id}`);
-  const wasHidden=savedPref!==null?savedPref==='1':window.innerWidth<700;
-  if(wasHidden)layout.classList.add('sidebar-hidden');
 
-  // Sidebar
+  // Sidebar — two independently collapsible sections
   const sidebar=el('div','accom-sidebar');
+
+  // --- Home Base ---
+  const accomOpen=sectionOpen('accom',dest.id);
   const accomCard=el('div','accom-card');
   const savedNotes=loadAccessNotes(dest.id);
-  accomCard.innerHTML=`<div class="accom-card-top"><div class="accom-section-tag">Home Base</div><button class="accom-hide-btn" onclick="toggleSidebar('${dest.id}')">Hide ←</button></div><div class="accom-address-block"><div class="accom-address-text">${esc(dest.accommodation.address)}</div><div class="accom-map-links"><a class="map-btn" href="${esc(dest.accommodation.appleMaps)}" target="_blank">${PIN} Apple Maps</a><a class="map-btn" href="${esc(dest.accommodation.googleMaps)}" target="_blank">${PIN} Google Maps</a></div></div><div class="accom-notes-block"><div class="accom-notes-label">Access Info</div><textarea class="accom-notes-area" placeholder="Door code, WiFi, check-in time, host contact…" oninput="saveAccessNotes('${dest.id}',this.value)">${esc(savedNotes)}</textarea><div class="accom-notes-hint">Stays on this device only.</div></div>`;
+  accomCard.innerHTML=`<div class="accom-card-top" onclick="toggleSection('accom','${dest.id}')"><div class="accom-section-tag">Home Base</div><span class="section-chevron" id="chevron-accom-${dest.id}">${accomOpen?'▾':'▸'}</span></div><div id="accom-body-${dest.id}" style="${accomOpen?'':'display:none'}"><div class="accom-address-block"><div class="accom-address-text">${esc(dest.accommodation.address)}</div><div class="accom-map-links"><a class="map-btn" href="${esc(dest.accommodation.appleMaps)}" target="_blank">${PIN} Apple Maps</a><a class="map-btn" href="${esc(dest.accommodation.googleMaps)}" target="_blank">${PIN} Google Maps</a></div></div><div class="accom-notes-block"><div class="accom-notes-label">Access Info</div><textarea class="accom-notes-area" placeholder="Door code, WiFi, check-in time, host contact…" oninput="saveAccessNotes('${dest.id}',this.value)">${esc(savedNotes)}</textarea><div class="accom-notes-hint">Stays on this device only.</div></div></div>`;
   sidebar.appendChild(accomCard);
 
-  // Wishlist
+  // --- Places to Visit ---
+  const wishOpen=sectionOpen('wish',dest.id);
   const wishCard=el('div','wish-card');
-  wishCard.innerHTML=`<div class="wish-card-top"><div class="wish-tag">Places to Visit</div></div><div class="wish-search-row"><input class="wish-search" id="wish-search-${dest.id}" type="text" placeholder="Search places in ${esc(dest.city)}…" autocomplete="off"><div class="wish-ac-list" id="wish-ac-${dest.id}"></div></div><div class="wish-list" id="wish-list-${dest.id}"></div>`;
+  wishCard.innerHTML=`<div class="wish-card-top" onclick="toggleSection('wish','${dest.id}')"><div class="wish-tag">Places to Visit</div><span class="section-chevron" id="chevron-wish-${dest.id}">${wishOpen?'▾':'▸'}</span></div><div id="wish-body-${dest.id}" style="${wishOpen?'':'display:none'}"><div class="wish-search-row"><input class="wish-search" id="wish-search-${dest.id}" type="text" placeholder="Search places in ${esc(dest.city)}…" autocomplete="off"><div class="wish-ac-list" id="wish-ac-${dest.id}"></div></div><div class="wish-list" id="wish-list-${dest.id}"></div></div>`;
   sidebar.appendChild(wishCard);
   // NOTE: refreshWishlist + setupWishSearch called in render() after fragment is in DOM
 
@@ -617,8 +625,6 @@ function renderDest(dest){
 
   // Days
   const daysContent=el('div','days-content');
-  const reveal=el('button','sidebar-reveal');reveal.id=`reveal-${dest.id}`;reveal.style.display=wasHidden?'flex':'none';reveal.innerHTML='🏠 Show accommodation';reveal.onclick=()=>toggleSidebar(dest.id);
-  daysContent.appendChild(reveal);
   dest.days.forEach(day=>daysContent.appendChild(renderDay(day)));
   layout.appendChild(daysContent);
   wrap.appendChild(layout);
