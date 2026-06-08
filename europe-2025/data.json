@@ -133,7 +133,25 @@
           "join": false,
           "joinTitle": null,
           "joinSub": null,
-          "events": [],
+          "events": [
+            {
+              "id": "ev-1780954673435",
+              "type": "other",
+              "category": "",
+              "name": "Annecy-le-Vieux",
+              "subtitle": null,
+              "time": null,
+              "timeLabel": null,
+              "address": "Suburb · Annecy, France",
+              "appleMaps": "https://maps.apple.com/?q=Annecy-le-Vieux",
+              "googleMaps": "https://www.google.com/maps?q=45.9191358,6.1420652",
+              "website": null,
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
+            }
+          ],
           "note": "Annecy Day"
         },
         {
