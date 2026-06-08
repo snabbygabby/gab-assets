@@ -272,6 +272,29 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .card-more-btn:hover { color:var(--sand); }
 .card-more-body .card-conf { margin-top:4px; }
 
+/* PINNED NOTES — visible on card without expanding Details */
+.card-pinned-notes { list-style:none; padding:0; margin:5px 0 2px; display:flex; flex-direction:column; gap:3px; }
+.card-pinned-notes li { font-size:11px; color:var(--ink-60); line-height:1.45; padding-left:12px; position:relative; font-weight:300; }
+.card-pinned-notes li::before { content:'·'; position:absolute; left:2px; color:var(--sand); font-size:15px; line-height:1; top:-1px; font-weight:700; }
+
+/* NOTES EDITOR (inside Add/Edit modal) */
+.notes-hint { font-size:10px; color:var(--ink-30); font-weight:400; margin-left:6px; }
+.notes-editor { display:flex; flex-direction:column; gap:5px; min-height:4px; }
+.note-row { display:flex; align-items:center; gap:6px; }
+.note-pin-btn { flex-shrink:0; background:none; border:1.5px solid var(--rule); border-radius:4px; width:28px; height:28px; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:all .15s; color:var(--ink-30); line-height:1; }
+.note-pin-btn:hover { border-color:var(--sand); color:var(--sand); }
+.note-pin-btn.pinned { border-color:var(--sand); background:var(--sand); color:#fff; }
+.note-pin-btn.pinned:hover { background:#b09970; border-color:#b09970; }
+.note-input-el { flex:1; border:1.5px solid var(--rule); border-radius:5px; padding:5px 9px; font-size:12.5px; font-family:'Inter',sans-serif; color:var(--ink); background:var(--bg,#fff); outline:none; transition:border-color .15s; }
+.note-input-el:focus { border-color:var(--sand); }
+.note-reorder { display:flex; flex-direction:column; flex-shrink:0; }
+.note-reorder button { background:none; border:none; cursor:pointer; font-size:9px; color:var(--ink-30); padding:1px 4px; line-height:1.2; transition:color .15s; }
+.note-reorder button:hover { color:var(--ink); }
+.note-del-btn { flex-shrink:0; background:none; border:none; cursor:pointer; font-size:18px; color:var(--ink-30); padding:0 2px; line-height:1; transition:color .15s; }
+.note-del-btn:hover { color:#c0392b; }
+.notes-add-btn { margin-top:5px; background:none; border:1.5px dashed var(--rule); border-radius:5px; padding:6px 12px; font-size:11px; font-weight:500; color:var(--ink-30); cursor:pointer; font-family:'Inter',sans-serif; width:100%; transition:all .15s; letter-spacing:.02em; }
+.notes-add-btn:hover { border-color:var(--sand); color:var(--sand); }
+
 /* ACCOMMODATION BRIEF CARD — ≤1 night, sage green, horizontal like flight */
 .card.accom-brief { grid-column:1/-1; cursor:default; background:#EDF1ED; border-color:#A8BAA5; }
 .card.accom-brief:hover { transform:none; box-shadow:var(--sh-sm); }
@@ -534,7 +557,13 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
           </div>
           <div class="form-row cols-2">
             <div class="form-field"><label class="form-label">Photo URL <button type="button" class="photo-search-btn" onclick="openImgSearch()">🔍 Search</button></label><input class="form-input" id="f-photo" type="url" placeholder="https://… or use search →"></div>
-            <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="f-notes" type="text" placeholder="Any details…"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Notes <span class="notes-hint">📌 pin = always show on card</span></label>
+              <div class="notes-editor" id="notes-editor"></div>
+              <button type="button" class="notes-add-btn" onclick="addNoteRow()">+ Add note</button>
+            </div>
           </div>
         </div>
         <div id="f-flight" class="form-hidden">
@@ -1417,10 +1446,15 @@ function renderEvent(event,dayId){
       if(event.googleMaps)links+=`<a class="card-link" href="${esc(event.googleMaps)}" target="_blank">${PIN} Google Maps</a>`;
       if(event.website)links+=`<a class="card-link" href="${esc(event.website)}" target="_blank">↗ Website</a>`;
       if(event.menu)links+=`<a class="card-link" href="${esc(event.menu)}" target="_blank">📋 Menu</a>`;
-      // Subtitle + conf go behind "Details" toggle; if no subtitle, show conf visibly
-      const moreSection=event.subtitle?`<button class="card-more-btn" onclick="toggleCardMore(this)">Details ▾</button><div class="card-more-body" style="display:none"><div class="card-sub">${esc(event.subtitle)}</div>${event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:''}</div>`:'';
-      const confStandalone=!event.subtitle&&event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:'';
-      inner.innerHTML=`${photo}<div class="card-body"><div class="card-cat">${esc(event.category)}</div><div class="card-name">${esc(event.name)}</div>${event.timeLabel||event.time?`<div class="card-time">✦ ${esc(event.timeLabel||event.time)}</div>`:''} ${moreSection} ${event.address?`<div class="card-hr"></div><div class="card-addr"><span class="card-addr-icon">📍</span><span class="card-addr-text">${esc(event.address)}</span></div>`:''} ${links?`<div class="card-links">${links}</div>`:''} ${confStandalone}</div>`;
+      // Notes: pinned bullets show on card; unpinned + conf go behind "Details" toggle
+      const allNotes=event.notes&&event.notes.length?event.notes:(event.subtitle?[{id:'legacy',text:event.subtitle,pinned:false}]:[]);
+      const pinnedNotes=allNotes.filter(n=>n.pinned);
+      const detailNotes=allNotes.filter(n=>!n.pinned);
+      const pinnedHtml=pinnedNotes.length?`<ul class="card-pinned-notes">${pinnedNotes.map(n=>`<li>${esc(n.text)}</li>`).join('')}</ul>`:'';
+      const detailBody=[...detailNotes.map(n=>`<div class="card-sub">• ${esc(n.text)}</div>`),event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:null].filter(Boolean).join('');
+      const moreSection=detailBody?`<button class="card-more-btn" onclick="toggleCardMore(this)">Details ▾</button><div class="card-more-body" style="display:none">${detailBody}</div>`:'';
+      const confStandalone=!detailBody&&event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:'';
+      inner.innerHTML=`${photo}<div class="card-body"><div class="card-cat">${esc(event.category)}</div><div class="card-name">${esc(event.name)}</div>${event.timeLabel||event.time?`<div class="card-time">✦ ${esc(event.timeLabel||event.time)}</div>`:''} ${pinnedHtml} ${moreSection} ${event.address?`<div class="card-hr"></div><div class="card-addr"><span class="card-addr-icon">📍</span><span class="card-addr-text">${esc(event.address)}</span></div>`:''} ${links?`<div class="card-links">${links}</div>`:''} ${confStandalone}</div>`;
       if(!event.photo)setTimeout(()=>autoPhoto(inner,event),100);
     }
   }
@@ -1444,15 +1478,47 @@ async function deleteEvent(dayId,eventId,name){
   catch(err){showToast(err.message,true);}
 }
 
+// NOTES BULLET EDITOR
+function addNoteRow(text,pinned){
+  text=text||'';pinned=!!pinned;
+  const editor=document.getElementById('notes-editor');if(!editor)return;
+  const row=document.createElement('div');row.className='note-row';
+  const id='n-'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  row.dataset.id=id;
+  const pinBtn=document.createElement('button');pinBtn.type='button';pinBtn.className='note-pin-btn'+(pinned?' pinned':'');pinBtn.title=pinned?'Pinned — shows on card':'Pin to show on card';pinBtn.textContent='📌';pinBtn.onclick=()=>{pinBtn.classList.toggle('pinned');pinBtn.title=pinBtn.classList.contains('pinned')?'Pinned — shows on card':'Pin to show on card';};
+  const inp=document.createElement('input');inp.type='text';inp.className='note-input-el';inp.placeholder='Add a note…';inp.value=text;
+  const reorder=document.createElement('div');reorder.className='note-reorder';
+  const up=document.createElement('button');up.type='button';up.title='Move up';up.textContent='▲';up.onclick=()=>{const prev=row.previousElementSibling;if(prev)editor.insertBefore(row,prev);};
+  const dn=document.createElement('button');dn.type='button';dn.title='Move down';dn.textContent='▼';dn.onclick=()=>{const next=row.nextElementSibling;if(next)editor.insertBefore(next,row);};
+  reorder.appendChild(up);reorder.appendChild(dn);
+  const del=document.createElement('button');del.type='button';del.className='note-del-btn';del.title='Delete note';del.textContent='×';del.onclick=()=>row.remove();
+  row.appendChild(pinBtn);row.appendChild(inp);row.appendChild(reorder);row.appendChild(del);
+  editor.appendChild(row);inp.focus();
+}
+function getNotesFromEditor(){
+  const editor=document.getElementById('notes-editor');if(!editor)return null;
+  const arr=Array.from(editor.querySelectorAll('.note-row')).map(row=>({
+    id:row.dataset.id,
+    text:row.querySelector('.note-input-el').value.trim(),
+    pinned:row.querySelector('.note-pin-btn').classList.contains('pinned')
+  })).filter(n=>n.text);
+  return arr.length?arr:null;
+}
+function clearNotesEditor(){const e=document.getElementById('notes-editor');if(e)e.innerHTML='';}
+function loadNotesIntoEditor(arr){
+  clearNotesEditor();
+  if(arr&&arr.length)arr.forEach(n=>addNoteRow(n.text,n.pinned));
+}
+
 // ADD / EDIT
-function openAddModal(dayId){S.editMode=null;document.getElementById('modal-title').textContent='Add to Itinerary';document.getElementById('f-submit').textContent='Add to Itinerary';document.getElementById('add-form').reset();onCatChange();populateDaySelect(dayId||null);document.getElementById('add-overlay').classList.add('open');}
+function openAddModal(dayId){S.editMode=null;document.getElementById('modal-title').textContent='Add to Itinerary';document.getElementById('f-submit').textContent='Add to Itinerary';document.getElementById('add-form').reset();clearNotesEditor();onCatChange();populateDaySelect(dayId||null);document.getElementById('add-overlay').classList.add('open');}
 function openEditModal(dayId,event){
   S.editMode={dayId,eventId:event.id};
   document.getElementById('modal-title').textContent='Edit Event';document.getElementById('f-submit').textContent='Save Changes';
   populateDaySelect(dayId);
   const isFlight=event.type==='flight';document.getElementById('f-cat').value=isFlight?'flight':event.type||'other';onCatChange();
   if(isFlight){document.getElementById('f-from').value=event.fromIATA||'';document.getElementById('f-to').value=event.toIATA||'';document.getElementById('f-fnum').value=event.flightNumber||'';document.getElementById('f-ftime').value=event.time||'';document.getElementById('f-fconf').value=event.confirmationNumber||'';document.getElementById('f-ftravelers').value='';document.getElementById('f-fnotes').value=event.notes||'';}
-  else{document.getElementById('f-name').value=event.name||'';document.getElementById('f-time').value=event.timeLabel||event.time||'';document.getElementById('f-conf').value=event.confirmationNumber||'';document.getElementById('f-addr').value=event.address||'';document.getElementById('f-web').value=event.website||'';document.getElementById('f-menu').value=event.menu||'';document.getElementById('f-photo').value=event.photo||'';document.getElementById('f-notes').value=event.subtitle||'';document.getElementById('f-nights').value=event.nights!=null?event.nights:'';}
+  else{document.getElementById('f-name').value=event.name||'';document.getElementById('f-time').value=event.timeLabel||event.time||'';document.getElementById('f-conf').value=event.confirmationNumber||'';document.getElementById('f-addr').value=event.address||'';document.getElementById('f-web').value=event.website||'';document.getElementById('f-menu').value=event.menu||'';document.getElementById('f-photo').value=event.photo||'';document.getElementById('f-nights').value=event.nights!=null?event.nights:'';loadNotesIntoEditor(event.notes||(event.subtitle?[{id:'n-legacy',text:event.subtitle,pinned:false}]:[]));}
   document.getElementById('add-overlay').classList.add('open');
 }
 function populateDaySelect(selectedId){
@@ -1474,7 +1540,7 @@ async function handleSubmit(e){
   try{
     const eventId=S.editMode?S.editMode.eventId:'ev-'+Date.now();let event;
     if(cat==='flight'){const travelers=document.getElementById('f-ftravelers').value.trim();event={id:eventId,type:'flight',category:'Flight'+(travelers?' · '+travelers:''),fromIATA:document.getElementById('f-from').value.trim().toUpperCase(),fromCity:document.getElementById('f-from').value.trim().toUpperCase(),toIATA:document.getElementById('f-to').value.trim().toUpperCase(),toCity:document.getElementById('f-to').value.trim().toUpperCase(),time:document.getElementById('f-ftime').value.trim()||null,flightNumber:document.getElementById('f-fnum').value.trim()||null,confirmationNumber:document.getElementById('f-fconf').value.trim()||null,notes:document.getElementById('f-fnotes').value.trim()||null};}
-    else{const label={restaurant:'Restaurant',activity:'Activity',accommodation:'Accommodation',highlight:'Highlight',other:''}[cat]||'';const name=document.getElementById('f-name').value.trim();const addr=document.getElementById('f-addr').value.trim();const nightsVal=document.getElementById('f-nights').value;event={id:eventId,type:cat,category:label,name,subtitle:document.getElementById('f-notes').value.trim()||null,time:document.getElementById('f-time').value.trim()||null,timeLabel:null,address:addr||null,appleMaps:addr?`https://maps.apple.com/?address=${encodeURIComponent(addr)}&q=${encodeURIComponent(name)}`:null,googleMaps:addr?`https://www.google.com/maps/search/${encodeURIComponent(addr)}`:null,website:document.getElementById('f-web').value.trim()||null,menu:document.getElementById('f-menu').value.trim()||null,photo:document.getElementById('f-photo').value.trim()||null,confirmationNumber:document.getElementById('f-conf').value.trim()||null,nights:cat==='accommodation'&&nightsVal?parseInt(nightsVal):null,notes:null};}
+    else{const label={restaurant:'Restaurant',activity:'Activity',accommodation:'Accommodation',highlight:'Highlight',other:''}[cat]||'';const name=document.getElementById('f-name').value.trim();const addr=document.getElementById('f-addr').value.trim();const nightsVal=document.getElementById('f-nights').value;event={id:eventId,type:cat,category:label,name,subtitle:null,time:document.getElementById('f-time').value.trim()||null,timeLabel:null,address:addr||null,appleMaps:addr?`https://maps.apple.com/?address=${encodeURIComponent(addr)}&q=${encodeURIComponent(name)}`:null,googleMaps:addr?`https://www.google.com/maps/search/${encodeURIComponent(addr)}`:null,website:document.getElementById('f-web').value.trim()||null,menu:document.getElementById('f-menu').value.trim()||null,photo:document.getElementById('f-photo').value.trim()||null,confirmationNumber:document.getElementById('f-conf').value.trim()||null,nights:cat==='accommodation'&&nightsVal?parseInt(nightsVal):null,notes:getNotesFromEditor()};}
     const data=JSON.parse(JSON.stringify(S.data));
     if(S.editMode){const{dayId:origDay,eventId:origId}=S.editMode;for(const dest of data.destinations)for(const day of dest.days)if(day.id===origDay){day.events=day.events.filter(e=>e.id!==origId);break;}for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);break;}await ghPut(data,`Update ${event.name||event.fromIATA+'→'+event.toIATA}`);showToast('Saved ✓');}
     else{let added=false;for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);added=true;break;}if(!added)throw new Error('Day not found');await ghPut(data,`Add ${event.name||event.fromIATA+'→'+event.toIATA} on ${dayId}`);showToast(`${event.name||'Flight'} added ✓`);}
