@@ -515,8 +515,37 @@ async function ghPut(newData,message){const token=getToken();if(!token)throw new
 
 // AUTO PHOTO
 const photoCache={};
-async function fetchWikiPhoto(query){if(photoCache[query]!==undefined)return photoCache[query];try{const url=`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(query)}&prop=pageimages&format=json&pithumbsize=800&origin=*`;const res=await fetch(url);const data=await res.json();const page=Object.values(data.query?.pages||{})[0];const src=page?.thumbnail?.source||null;photoCache[query]=src;return src;}catch{photoCache[query]=null;return null;}}
-async function autoPhoto(inner,event){const ph=inner.querySelector('.card-img-ph');if(!ph||event.photo)return;const query=event.name+(event.address?' '+event.address.split(',').pop().trim():'');const src=await fetchWikiPhoto(query);if(src&&ph.parentNode){const img=document.createElement('img');img.className='card-img';img.src=src;img.alt=event.name;img.onerror=()=>{};ph.replaceWith(img);}}
+// AUTO PHOTO — 3-step waterfall: Wikipedia title → Wikipedia search → Openverse CC
+async function fetchAutoPhoto(query){
+  if(photoCache[query]!==undefined)return photoCache[query];
+  const cache=v=>{photoCache[query]=v;return v;};
+  try{
+    // 1. Wikipedia: exact title
+    const r1=await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(query)}&prop=pageimages&format=json&pithumbsize=800&origin=*`);
+    const d1=await r1.json();
+    const p1=Object.values(d1.query?.pages||{})[0];
+    if(p1?.thumbnail?.source)return cache(p1.thumbnail.source);
+    // 2. Wikipedia: full-text search (catches restaurants, venues without exact titles)
+    const r2=await fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&prop=pageimages&pithumbsize=800&format=json&origin=*&gsrlimit=5`);
+    const d2=await r2.json();
+    const p2=Object.values(d2.query?.pages||{}).find(p=>p.thumbnail);
+    if(p2?.thumbnail?.source)return cache(p2.thumbnail.source);
+    // 3. Openverse: Creative Commons photos, no API key needed
+    const r3=await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(query)}&page_size=3&license_type=commercial`);
+    const d3=await r3.json();
+    const src3=d3.results?.[0]?.thumbnail||d3.results?.[0]?.url||null;
+    if(src3)return cache(src3);
+  }catch{}
+  return cache(null);
+}
+async function autoPhoto(inner,event){
+  const ph=inner.querySelector('.card-img-ph');if(!ph||event.photo)return;
+  // Build a richer query: name + city/country from address tail
+  const addrTail=event.address?event.address.split(',').slice(-2).join(' ').trim():'';
+  const query=event.name+(addrTail?' '+addrTail:'');
+  const src=await fetchAutoPhoto(query);
+  if(src&&ph.parentNode){const img=document.createElement('img');img.className='card-img';img.src=src;img.alt=event.name;img.onerror=()=>img.style.display='none';ph.replaceWith(img);}
+}
 
 // PHOTON (Komoot) — Google Maps-style place search, no auth needed
 async function fetchPhoton(query){try{const res=await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en`);const d=await res.json();return d.features||[];}catch{return[];}}
