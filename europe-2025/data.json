@@ -27,6 +27,31 @@
       "travelersLabel": "Gabby + Griffin",
       "days": [
         {
+          "id": "2026-07-08",
+          "num": "08",
+          "weekday": "Wednesday",
+          "label": "July 8 · Departure from Chicago",
+          "badge": null,
+          "join": false,
+          "joinTitle": null,
+          "joinSub": null,
+          "events": [
+            {
+              "id": "flight-ord-ams",
+              "type": "flight",
+              "category": "Flight · KL0612 · Gabby + Griffin",
+              "fromIATA": "ORD",
+              "fromCity": "Chicago",
+              "toIATA": "AMS",
+              "toCity": "Amsterdam",
+              "time": "Departs 4:50 pm · Arrives 7:35 am +1",
+              "flightNumber": "KL0612",
+              "confirmationNumber": "Y6NJL9",
+              "notes": "Operated by KLM · Economy · Overnight flight"
+            }
+          ]
+        },
+        {
           "id": "2026-07-09",
           "num": "09",
           "weekday": "Thursday",
