@@ -75,7 +75,7 @@
               "notes": "Operated by KLM. Boeing 737-800. Economy Class. Arrives Geneva 11:10. Passenger: Gabrielle Stieglitz."
             }
           ],
-          "note": null
+          "note": "test"
         },
         {
           "id": "2026-07-10",
@@ -154,7 +154,17 @@
           ]
         }
       ],
-      "wishlist": []
+      "wishlist": [
+        {
+          "id": "wish-1780943337170",
+          "name": "Lavaux Vineyards",
+          "address": "Lavaux Vineyards, Lausanne",
+          "appleMaps": "https://maps.apple.com/?q=Lavaux%20Vineyards%20Lausanne",
+          "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%20Lausanne",
+          "website": null,
+          "notes": "UNESCO wine terraces, 30 min away"
+        }
+      ]
     },
     {
       "id": "nice",
