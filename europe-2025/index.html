@@ -149,6 +149,18 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .day-datestr { font-size:11px; font-weight:400; color:var(--ink-30); letter-spacing:.06em; }
 .day-badge { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:600; font-family:'Inter',sans-serif; color:#fff; padding:2px 9px; border-radius:99px; }
 
+/* ─── DAY NOTE ─── */
+.day-note-wrap { margin: -12px 0 24px; }
+.day-note-input {
+  width: 100%; border: none; border-bottom: 1px solid transparent;
+  background: transparent; font-family: 'Playfair Display', serif;
+  font-style: italic; font-size: 14px; color: var(--ink-60);
+  padding: 5px 0; outline: none; transition: border-color .15s, color .15s;
+}
+.day-note-input:hover { border-bottom-color: var(--rule); }
+.day-note-input:focus { border-bottom-color: var(--sand); color: var(--ink); }
+.day-note-input::placeholder { color: var(--ink-30); font-style: italic; }
+
 /* ─── JOIN BANNER ─── */
 .join-banner { background:linear-gradient(135deg,#1A1916 0%,#3B3630 100%); border-radius:3px; padding:18px 24px; display:flex; align-items:center; gap:16px; margin-bottom:20px; position:relative; overflow:hidden; }
 .join-banner::after { content:'✦'; position:absolute; right:24px; font-size:80px; color:rgba(196,168,130,.09); line-height:1; pointer-events:none; }
@@ -536,6 +548,16 @@ function renderDay(day) {
   const head=el('div','day-head');
   head.innerHTML=`<div class="day-num">${day.num}</div><div class="day-meta"><div class="day-weekday">${esc(day.weekday)}${day.badge?`<span class="day-badge" style="background:${day.badge.color}">${day.badge.text}</span>`:''}</div><div class="day-datestr">${esc(day.label)}</div></div>`;
   dayEl.appendChild(head);
+  // Day note
+  const noteWrap=el('div','day-note-wrap');
+  const noteInput=el('input','day-note-input');
+  noteInput.type='text'; noteInput.placeholder='Add a note for this day…';
+  noteInput.value=day.note||'';
+  let noteOrig=day.note||'';
+  noteInput.addEventListener('keydown',e=>{if(e.key==='Enter')noteInput.blur();if(e.key==='Escape'){noteInput.value=noteOrig;noteInput.blur();}});
+  noteInput.addEventListener('blur',()=>{if(noteInput.value.trim()!==noteOrig){saveDayNote(day.id,noteInput.value);noteOrig=noteInput.value.trim();}});
+  noteWrap.appendChild(noteInput);dayEl.appendChild(noteWrap);
+
   if(day.join){const b=el('div','join-banner');b.innerHTML=`<span class="join-icon">✈️</span><div><div class="join-title">${esc(day.joinTitle)}</div><div class="join-sub">${esc(day.joinSub)}</div></div>`;dayEl.appendChild(b);}
   const grid=el('div','grid');grid.dataset.day=day.id;
   day.events.forEach(event=>grid.appendChild(renderEvent(event,day.id)));
@@ -569,6 +591,18 @@ function renderEvent(event,dayId) {
   }
   card.appendChild(inner);
   return card;
+}
+
+// ── DAY NOTES ─────────────────────────────────────────────────────────────
+async function saveDayNote(dayId, note) {
+  const token = getToken();
+  if (!token) { showToast('Add a GitHub token in ⚙ to save notes', true); return; }
+  const data = JSON.parse(JSON.stringify(S.data));
+  for (const dest of data.destinations)
+    for (const day of dest.days)
+      if (day.id === dayId) { day.note = note.trim() || null; break; }
+  try { await ghPut(data, `Update note for ${dayId}`); S.data = data; showToast('Note saved ✓'); }
+  catch(err) { showToast(err.message, true); }
 }
 
 // ── DELETE ─────────────────────────────────────────────────────────────────
