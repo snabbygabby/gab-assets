@@ -168,6 +168,19 @@
               "flightNumber": null,
               "confirmationNumber": null,
               "notes": "Flight details to be added"
+            },
+            {
+              "id": "email-1780954146858-6l8",
+              "type": "flight",
+              "category": "Flight · LX522",
+              "fromIATA": "GVA",
+              "fromCity": "Geneva",
+              "toIATA": "NCE",
+              "toCity": "Nice",
+              "time": "8:20 AM",
+              "flightNumber": "LX522",
+              "confirmationNumber": "Y4JLP8",
+              "notes": "Final price CHF 293.30 (incl. taxes, fees and surcharges). Part of Europe trip (Lausanne July 9–12, Nice July 13–22)."
             }
           ]
         }
@@ -218,6 +231,19 @@
               "photo": "https://images.eu.ctfassets.net/og3b0tarlg4b/5gRma4RFBRXwtBEZs63qfz/153e08103d3ba4a24ee78a50a4316d7a/HDCER_restaurant_Eden-Roc__Jean-Michel_Sordello.jpg?w=3200&h=2380&fm=jpg&fit=fill",
               "confirmationNumber": null,
               "notes": null
+            },
+            {
+              "id": "email-1780954146858-6l8",
+              "type": "flight",
+              "category": "Flight · LX522",
+              "fromIATA": "GVA",
+              "fromCity": "Geneva",
+              "toIATA": "NCE",
+              "toCity": "Nice",
+              "time": "8:20 AM",
+              "flightNumber": "LX522",
+              "confirmationNumber": "Y4JLP8",
+              "notes": "Final price CHF 293.30 (incl. taxes, fees and surcharges). Part of Europe trip (Lausanne July 9–12, Nice July 13–22)."
             }
           ]
         },
