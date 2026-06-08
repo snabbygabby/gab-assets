@@ -245,6 +245,24 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .flight-cat-h { font-size:8px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:#B5896F; flex-shrink:0; }
 .card.flight .card-action-btn { background:rgba(0,0,0,.08); }
 
+/* MORE INFO TOGGLE */
+.card-more-btn { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:500; color:var(--ink-30); background:none; border:none; cursor:pointer; padding:0 0 8px; font-family:'Inter',sans-serif; transition:color .15s; letter-spacing:.02em; }
+.card-more-btn:hover { color:var(--sand); }
+.card-more-body .card-conf { margin-top:4px; }
+
+/* ACCOMMODATION BRIEF CARD — ≤1 night, sage green, horizontal like flight */
+.card.accom-brief { grid-column:1/-1; cursor:default; background:#EDF1ED; border-color:#A8BAA5; }
+.card.accom-brief:hover { transform:none; box-shadow:var(--sh-sm); }
+.card.accom-brief .card-inner { display:flex; align-items:center; padding:14px 20px; gap:20px; overflow:hidden; }
+.accom-brief-main { flex-shrink:0; }
+.accom-brief-name-h { font-family:'Playfair Display',serif; font-size:18px; font-weight:400; color:var(--ink); line-height:1.15; }
+.accom-brief-nights { font-size:10px; font-weight:500; color:#8A9A86; margin-top:2px; letter-spacing:.02em; }
+.card.accom-brief .flight-detail-label { color:#8A9A86; }
+.card.accom-brief .flight-cat-h { color:#8A9A86; }
+.card.accom-brief .flight-detail-val { white-space:normal; max-width:220px; }
+.card.accom-brief .flight-divider-h { background:rgba(0,0,0,.09); }
+.card.accom-brief .card-action-btn { background:rgba(0,0,0,.08); }
+
 /* PLACEHOLDER */
 .card.placeholder { background:transparent; border-style:dashed; box-shadow:none; cursor:pointer; min-height:88px; display:flex; align-items:center; justify-content:center; padding:24px; overflow:hidden; }
 .card.placeholder:hover { transform:none; box-shadow:none; border-color:var(--sand); }
@@ -378,6 +396,8 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
   .card-body { padding:11px 13px 13px; }
   .card-name { font-size:15px; }
   .card-action-btn { width:28px; height:28px; font-size:12px; }
+  /* Edit/delete always visible on touch devices */
+  .card-actions { opacity:1; pointer-events:all; }
 
   /* Flight card: stack cleanly */
   .card.flight .card-inner { flex-wrap:wrap; padding:12px 14px; gap:3px 18px; align-items:flex-start; }
@@ -385,6 +405,13 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
   .flight-iata-h { font-size:24px; }
   .flight-spacer,.flight-cat-h { display:none; }
   .flight-divider-h { display:none; }
+
+  /* Accom brief: stack like flight */
+  .card.accom-brief .card-inner { flex-wrap:wrap; padding:12px 14px; gap:4px 14px; align-items:flex-start; }
+  .accom-brief-name-h { font-size:16px; }
+  .card.accom-brief .flight-divider-h { display:none; }
+  .card.accom-brief .flight-cat-h { display:none; }
+  .card.accom-brief .flight-spacer { display:none; }
 
   /* Placeholder card */
   .card.placeholder { min-height:60px; padding:16px; }
@@ -469,8 +496,11 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
         <div id="f-standard">
           <div class="form-row"><div class="form-field"><label class="form-label">Name *</label><input class="form-input" id="f-name" type="text" placeholder="e.g. La Merenda, Hike to Èze…" required></div></div>
           <div class="form-row cols-2">
-            <div class="form-field"><label class="form-label">Time</label><input class="form-input" id="f-time" type="text" placeholder="e.g. 8:00 pm"></div>
+            <div class="form-field"><label class="form-label">Time</label><input class="form-input" id="f-time" type="text" placeholder="e.g. Check-in 3 PM / Check-out 11 AM"></div>
             <div class="form-field"><label class="form-label">Confirmation #</label><input class="form-input" id="f-conf" type="text" placeholder="Optional"></div>
+          </div>
+          <div class="form-row form-hidden" id="f-accom-wrap">
+            <div class="form-field"><label class="form-label">Nights <span style="font-weight:400;color:var(--ink-30)">(shows as compact card if 1 night)</span></label><input class="form-input" id="f-nights" type="number" min="1" max="60" placeholder="e.g. 1" style="max-width:120px"></div>
           </div>
           <div class="form-row"><div class="form-field"><label class="form-label">Address</label><div class="ac-wrap"><input class="form-input" id="f-addr" type="text" placeholder="Start typing an address…" autocomplete="off"><div class="ac-list" id="ac-list"></div></div></div></div>
           <div class="form-row cols-2">
@@ -1225,6 +1255,19 @@ function renderDay(day){
   return dayEl;
 }
 
+// Parse number of nights from event.nights field or subtitle text
+function parseNights(event){
+  if(event.nights!=null)return Number(event.nights);
+  const sub=event.subtitle||'';
+  const m=sub.match(/\b(\d+)\s*night/i);
+  return m?parseInt(m[1]):null;
+}
+function toggleCardMore(btn){
+  const body=btn.nextElementSibling;
+  const isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'';
+  btn.textContent=isOpen?'Details ▾':'Details ▴';
+}
 function renderEvent(event,dayId){
   const card=el('div','card');
   const actions=el('div','card-actions');
@@ -1236,15 +1279,28 @@ function renderEvent(event,dayId){
     card.classList.add('flight');
     inner.innerHTML=`<div class="flight-route-h"><span class="flight-iata-h">${esc(event.fromIATA)}</span><div class="flight-arrow-h"><span class="flight-plane-h">✈</span></div><span class="flight-iata-h">${esc(event.toIATA)}</span></div><div class="flight-divider-h"></div>${event.flightNumber?`<div class="flight-detail-h"><div class="flight-detail-label">Flight</div><div class="flight-detail-val">${esc(event.flightNumber)}</div></div><div class="flight-divider-h"></div>`:''} ${event.time?`<div class="flight-detail-h"><div class="flight-detail-label">Time</div><div class="flight-detail-val">${esc(event.time)}</div></div><div class="flight-divider-h"></div>`:''}<div class="flight-detail-h"><div class="flight-detail-label">Route</div><div class="flight-detail-val">${esc(event.fromCity)} → ${esc(event.toCity)}</div></div>${event.confirmationNumber?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Conf</div><div class="flight-detail-val">${esc(event.confirmationNumber)}</div></div>`:''}<div class="flight-spacer"></div><div class="flight-cat-h">${esc(event.category)}</div>`;
   }else{
-    card.draggable=true;card.dataset.id=event.id;
-    const photo=event.photo?`<img class="card-img" src="${esc(event.photo)}" alt="${esc(event.name)}" onerror="this.outerHTML='<div class=\\'card-img-ph\\'>${catEmoji(event.type)}</div>'">`:`<div class="card-img-ph">${catEmoji(event.type)}</div>`;
-    let links='';
-    if(event.appleMaps)links+=`<a class="card-link cta" href="${esc(event.appleMaps)}" target="_blank">${PIN} Apple Maps</a>`;
-    if(event.googleMaps)links+=`<a class="card-link" href="${esc(event.googleMaps)}" target="_blank">${PIN} Google Maps</a>`;
-    if(event.website)links+=`<a class="card-link" href="${esc(event.website)}" target="_blank">↗ Website</a>`;
-    if(event.menu)links+=`<a class="card-link" href="${esc(event.menu)}" target="_blank">📋 Menu</a>`;
-    inner.innerHTML=`${photo}<div class="card-body"><div class="card-cat">${esc(event.category)}</div><div class="card-name">${esc(event.name)}</div>${event.subtitle?`<div class="card-sub">${esc(event.subtitle)}</div>`:''} ${event.timeLabel||event.time?`<div class="card-time">✦ ${esc(event.timeLabel||event.time)}</div>`:''} ${event.address?`<div class="card-hr"></div><div class="card-addr"><span class="card-addr-icon">📍</span><span class="card-addr-text">${esc(event.address)}</span></div>`:''} ${links?`<div class="card-links">${links}</div>`:''} ${event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:''}</div>`;
-    if(!event.photo)setTimeout(()=>autoPhoto(inner,event),100);
+    const nights=parseNights(event);
+    const isAccomBrief=event.type==='accommodation'&&nights!=null&&nights<2;
+    if(isAccomBrief){
+      // 1-night accommodation → horizontal sage green card (like flight)
+      card.classList.add('accom-brief');
+      const checkinText=event.time||event.timeLabel;
+      inner.innerHTML=`<div class="accom-brief-main"><div class="accom-brief-name-h">${esc(event.name)}</div><div class="accom-brief-nights">1 night</div></div>${checkinText?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Check-in / out</div><div class="flight-detail-val">${esc(checkinText)}</div></div>`:''} ${event.address?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Address</div><div class="flight-detail-val">${esc(event.address)}</div></div>`:''} ${event.confirmationNumber?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Conf</div><div class="flight-detail-val">${esc(event.confirmationNumber)}</div></div>`:''}<div class="flight-spacer"></div><div class="flight-cat-h">ACCOMMODATION</div>`;
+    }else{
+      // Standard card with "Details" toggle for subtitle
+      card.draggable=true;card.dataset.id=event.id;
+      const photo=event.photo?`<img class="card-img" src="${esc(event.photo)}" alt="${esc(event.name)}" onerror="this.outerHTML='<div class=\\'card-img-ph\\'>${catEmoji(event.type)}</div>'">`:`<div class="card-img-ph">${catEmoji(event.type)}</div>`;
+      let links='';
+      if(event.appleMaps)links+=`<a class="card-link cta" href="${esc(event.appleMaps)}" target="_blank">${PIN} Apple Maps</a>`;
+      if(event.googleMaps)links+=`<a class="card-link" href="${esc(event.googleMaps)}" target="_blank">${PIN} Google Maps</a>`;
+      if(event.website)links+=`<a class="card-link" href="${esc(event.website)}" target="_blank">↗ Website</a>`;
+      if(event.menu)links+=`<a class="card-link" href="${esc(event.menu)}" target="_blank">📋 Menu</a>`;
+      // Subtitle + conf go behind "Details" toggle; if no subtitle, show conf visibly
+      const moreSection=event.subtitle?`<button class="card-more-btn" onclick="toggleCardMore(this)">Details ▾</button><div class="card-more-body" style="display:none"><div class="card-sub">${esc(event.subtitle)}</div>${event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:''}</div>`:'';
+      const confStandalone=!event.subtitle&&event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:'';
+      inner.innerHTML=`${photo}<div class="card-body"><div class="card-cat">${esc(event.category)}</div><div class="card-name">${esc(event.name)}</div>${event.timeLabel||event.time?`<div class="card-time">✦ ${esc(event.timeLabel||event.time)}</div>`:''} ${moreSection} ${event.address?`<div class="card-hr"></div><div class="card-addr"><span class="card-addr-icon">📍</span><span class="card-addr-text">${esc(event.address)}</span></div>`:''} ${links?`<div class="card-links">${links}</div>`:''} ${confStandalone}</div>`;
+      if(!event.photo)setTimeout(()=>autoPhoto(inner,event),100);
+    }
   }
   card.appendChild(inner);
   return card;
@@ -1274,7 +1330,7 @@ function openEditModal(dayId,event){
   populateDaySelect(dayId);
   const isFlight=event.type==='flight';document.getElementById('f-cat').value=isFlight?'flight':event.type||'other';onCatChange();
   if(isFlight){document.getElementById('f-from').value=event.fromIATA||'';document.getElementById('f-to').value=event.toIATA||'';document.getElementById('f-fnum').value=event.flightNumber||'';document.getElementById('f-ftime').value=event.time||'';document.getElementById('f-fconf').value=event.confirmationNumber||'';document.getElementById('f-ftravelers').value='';document.getElementById('f-fnotes').value=event.notes||'';}
-  else{document.getElementById('f-name').value=event.name||'';document.getElementById('f-time').value=event.timeLabel||event.time||'';document.getElementById('f-conf').value=event.confirmationNumber||'';document.getElementById('f-addr').value=event.address||'';document.getElementById('f-web').value=event.website||'';document.getElementById('f-menu').value=event.menu||'';document.getElementById('f-photo').value=event.photo||'';document.getElementById('f-notes').value=event.subtitle||'';}
+  else{document.getElementById('f-name').value=event.name||'';document.getElementById('f-time').value=event.timeLabel||event.time||'';document.getElementById('f-conf').value=event.confirmationNumber||'';document.getElementById('f-addr').value=event.address||'';document.getElementById('f-web').value=event.website||'';document.getElementById('f-menu').value=event.menu||'';document.getElementById('f-photo').value=event.photo||'';document.getElementById('f-notes').value=event.subtitle||'';document.getElementById('f-nights').value=event.nights!=null?event.nights:'';}
   document.getElementById('add-overlay').classList.add('open');
 }
 function populateDaySelect(selectedId){
@@ -1285,6 +1341,7 @@ function populateDaySelect(selectedId){
 function onCatChange(){
   const cat=document.getElementById('f-cat').value;const isFlight=cat==='flight';
   document.getElementById('f-standard').classList.toggle('form-hidden',isFlight);document.getElementById('f-flight').classList.toggle('form-hidden',!isFlight);document.getElementById('f-menu-wrap').classList.toggle('form-hidden',cat!=='restaurant');
+  document.getElementById('f-accom-wrap').classList.toggle('form-hidden',cat!=='accommodation');
   document.getElementById('f-from').required=isFlight;document.getElementById('f-to').required=isFlight;document.getElementById('f-name').required=!isFlight;
 }
 async function handleSubmit(e){
@@ -1295,7 +1352,7 @@ async function handleSubmit(e){
   try{
     const eventId=S.editMode?S.editMode.eventId:'ev-'+Date.now();let event;
     if(cat==='flight'){const travelers=document.getElementById('f-ftravelers').value.trim();event={id:eventId,type:'flight',category:'Flight'+(travelers?' · '+travelers:''),fromIATA:document.getElementById('f-from').value.trim().toUpperCase(),fromCity:document.getElementById('f-from').value.trim().toUpperCase(),toIATA:document.getElementById('f-to').value.trim().toUpperCase(),toCity:document.getElementById('f-to').value.trim().toUpperCase(),time:document.getElementById('f-ftime').value.trim()||null,flightNumber:document.getElementById('f-fnum').value.trim()||null,confirmationNumber:document.getElementById('f-fconf').value.trim()||null,notes:document.getElementById('f-fnotes').value.trim()||null};}
-    else{const label={restaurant:'Restaurant',activity:'Activity',accommodation:'Accommodation',highlight:'Highlight',other:''}[cat]||'';const name=document.getElementById('f-name').value.trim();const addr=document.getElementById('f-addr').value.trim();event={id:eventId,type:cat,category:label,name,subtitle:document.getElementById('f-notes').value.trim()||null,time:document.getElementById('f-time').value.trim()||null,timeLabel:null,address:addr||null,appleMaps:addr?`https://maps.apple.com/?address=${encodeURIComponent(addr)}&q=${encodeURIComponent(name)}`:null,googleMaps:addr?`https://www.google.com/maps/search/${encodeURIComponent(addr)}`:null,website:document.getElementById('f-web').value.trim()||null,menu:document.getElementById('f-menu').value.trim()||null,photo:document.getElementById('f-photo').value.trim()||null,confirmationNumber:document.getElementById('f-conf').value.trim()||null,notes:null};}
+    else{const label={restaurant:'Restaurant',activity:'Activity',accommodation:'Accommodation',highlight:'Highlight',other:''}[cat]||'';const name=document.getElementById('f-name').value.trim();const addr=document.getElementById('f-addr').value.trim();const nightsVal=document.getElementById('f-nights').value;event={id:eventId,type:cat,category:label,name,subtitle:document.getElementById('f-notes').value.trim()||null,time:document.getElementById('f-time').value.trim()||null,timeLabel:null,address:addr||null,appleMaps:addr?`https://maps.apple.com/?address=${encodeURIComponent(addr)}&q=${encodeURIComponent(name)}`:null,googleMaps:addr?`https://www.google.com/maps/search/${encodeURIComponent(addr)}`:null,website:document.getElementById('f-web').value.trim()||null,menu:document.getElementById('f-menu').value.trim()||null,photo:document.getElementById('f-photo').value.trim()||null,confirmationNumber:document.getElementById('f-conf').value.trim()||null,nights:cat==='accommodation'&&nightsVal?parseInt(nightsVal):null,notes:null};}
     const data=JSON.parse(JSON.stringify(S.data));
     if(S.editMode){const{dayId:origDay,eventId:origId}=S.editMode;for(const dest of data.destinations)for(const day of dest.days)if(day.id===origDay){day.events=day.events.filter(e=>e.id!==origId);break;}for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);break;}await ghPut(data,`Update ${event.name||event.fromIATA+'→'+event.toIATA}`);showToast('Saved ✓');}
     else{let added=false;for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);added=true;break;}if(!added)throw new Error('Day not found');await ghPut(data,`Add ${event.name||event.fromIATA+'→'+event.toIATA} on ${dayId}`);showToast(`${event.name||'Flight'} added ✓`);}
