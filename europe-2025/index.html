@@ -597,7 +597,7 @@ async function loadMoreImgs(){IS.page++;await _doImgSearch();}
 
 // GITHUB API
 async function ghGet(){const token=getToken();const res=await fetch(`https://api.github.com/repos/${CFG.repo}/contents/${CFG.path}`,{headers:token?{Authorization:`token ${token}`}:{}});if(!res.ok)throw new Error(`GitHub ${res.status}`);return res.json();}
-async function ghPut(newData,message){const token=getToken();if(!token)throw new Error('No token — click ⚙ to add your GitHub token');const file=await ghGet();const content=btoa(unescape(encodeURIComponent(JSON.stringify(newData,null,2))));const res=await fetch(`https://api.github.com/repos/${CFG.repo}/contents/${CFG.path}`,{method:'PUT',headers:{Authorization:`token ${token}`,'Content-Type':'application/json'},body:JSON.stringify({message,content,sha:file.sha})});if(!res.ok){const e=await res.json();throw new Error(e.message||'GitHub error');}}
+async function ghPut(newData,message){const token=getToken();if(!token)throw new Error('No token — tap ⚙ in the top nav to add your GitHub token');const file=await ghGet();const content=btoa(unescape(encodeURIComponent(JSON.stringify(newData,null,2))));const res=await fetch(`https://api.github.com/repos/${CFG.repo}/contents/${CFG.path}`,{method:'PUT',headers:{Authorization:`token ${token}`,'Content-Type':'application/json'},body:JSON.stringify({message,content,sha:file.sha})});if(!res.ok){const e=await res.json().catch(()=>({}));if(res.status===401||res.status===403)throw new Error('Token expired or invalid — tap ⚙ to paste a new one');throw new Error(e.message||`GitHub ${res.status}`);}}
 
 // AUTO PHOTO
 const photoCache={};
@@ -1068,6 +1068,20 @@ function initDrag(){
     });
   });
 }
+
+// PHOTO URL VALIDATOR — warn about URLs that won't display cross-site
+(function initPhotoValidator(){
+  const input=document.getElementById('f-photo');if(!input)return;
+  const BLOCKED=[/encrypted-tbn\d\.gstatic\.com/,/googleusercontent\.com\/photos/,/lh\d\.googleusercontent\.com/,/pbs\.twimg\.com/];
+  input.addEventListener('blur',()=>{
+    const v=input.value.trim();if(!v)return;
+    if(BLOCKED.some(re=>re.test(v))){
+      showToast("That URL is blocked by Google — use 🔍 Search instead",true);
+      input.style.borderColor='var(--red)';
+      setTimeout(()=>input.style.borderColor='',4000);
+    }
+  });
+})();
 
 // ADDRESS AUTOCOMPLETE
 (function initAC(){
