@@ -188,6 +188,10 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .trash-source { font-size:9px; color:var(--ink-30); margin-top:1px; }
 .trash-restore { background:none; border:1px solid var(--rule); border-radius:3px; padding:3px 8px; font-size:9px; font-weight:500; color:var(--ink-60); cursor:pointer; font-family:'Inter',sans-serif; flex-shrink:0; transition:all .15s; }
 .trash-restore:hover { border-color:var(--sand); color:var(--ink); }
+.trash-perm-del { background:none; border:none; cursor:pointer; font-size:17px; color:var(--ink-30); padding:0 3px; flex-shrink:0; transition:color .15s; line-height:1; font-weight:300; }
+.trash-perm-del:hover { color:var(--red); }
+.trash-clear-btn { font-size:8px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-30); background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif; padding:2px 5px; border-radius:3px; transition:all .15s; }
+.trash-clear-btn:hover { color:var(--red); background:rgba(191,59,59,.06); }
 .trash-empty { font-size:10px; color:var(--ink-30); text-align:center; padding:14px 10px; font-style:italic; }
 
 /* DAYS */
@@ -775,6 +779,7 @@ function sectionOpen(type,destId){
 // CURATED TOP PICKS — categorized, 10 per category per city
 // Sources: Michelin, Infatuation, Gault & Millau, Eater, Time Out, Afar, Atlas Obscura,
 //          NYT 36 Hours, Condé Nast Traveler, Rick Steves, Lonely Planet, Fodor's
+const PICKS_PER_CAT=6; // show this many per category; dismissing one auto-surfaces the next from the pool
 const PICK_CATEGORIES=[
   {key:'restaurants',label:'Restaurants',emoji:'🍽'},
   {key:'bars',label:'Bars & Nightlife',emoji:'🍸'},
@@ -946,7 +951,7 @@ function renderTrash(destId){
   trash.forEach(item=>{
     const row=el('div','trash-item');
     const emoji=item.source==='picks'?(item.emoji||'✦'):'📍';
-    row.innerHTML=`<span class="trash-emoji">${emoji}</span><div class="trash-info"><div class="trash-name">${esc(item.name)}</div><div class="trash-source">${item.source==='picks'?'Explore':'Wishlist'}</div></div><button class="trash-restore" onclick="restoreFromTrash('${esc(destId)}','${esc(item.id)}')">↩ Restore</button>`;
+    row.innerHTML=`<span class="trash-emoji">${emoji}</span><div class="trash-info"><div class="trash-name">${esc(item.name)}</div><div class="trash-source">${item.source==='picks'?'Explore':'Wishlist'}</div></div><button class="trash-restore" onclick="restoreFromTrash('${esc(destId)}','${esc(item.id)}')">↩ Restore</button><button class="trash-perm-del" onclick="permanentDeleteFromTrash('${esc(destId)}','${esc(item.id)}')" title="Delete permanently">×</button>`;
     list.appendChild(row);
   });
 }
@@ -957,6 +962,14 @@ function restoreFromTrash(destId,itemId){
   const dismissed=getDismissedPicks(destId).filter(id=>id!==itemId);
   try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
   renderPicks(destId);renderTrash(destId);showToast(`${item.name} restored ✓`);
+}
+function permanentDeleteFromTrash(destId,itemId){
+  try{localStorage.setItem(`trash-${destId}`,JSON.stringify(getTrash(destId).filter(t=>t.id!==itemId)));}catch{}
+  renderTrash(destId);showToast('Removed permanently');
+}
+function clearTrash(destId){
+  try{localStorage.removeItem(`trash-${destId}`);}catch{}
+  renderTrash(destId);showToast('Cleared ✓');
 }
 
 // WISHLIST (localStorage only — never saved to GitHub)
@@ -1164,6 +1177,7 @@ function renderPicks(destId){
   PICK_CATEGORIES.forEach(cat=>{
     const all=cats[cat.key]||[];
     const available=all.filter(p=>!dismissed.includes(p.id));
+    const visible=available.slice(0,PICKS_PER_CAT);
     totalAll+=all.length;totalAvail+=available.length;
     const isOpen=picksCatOpen(destId,cat.key);
     const head=el('div','picks-cat-head');
@@ -1179,7 +1193,7 @@ function renderPicks(destId){
       empty.innerHTML=`All ${esc(cat.label.toLowerCase())} seen! <button class="picks-reset" onclick="resetPicksCat('${destId}','${cat.key}')">Show again</button>`;
       wrap.appendChild(empty);
     }else{
-      available.forEach(pick=>{
+      visible.forEach(pick=>{
         const item=el('div','picks-item');item.dataset.id=pick.id;
         const metaRow=(pick.instagram||pick.desc)?`<div class="picks-meta-row">${pick.instagram?`<a class="picks-ig" href="https://instagram.com/${pick.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()">${esc(pick.instagram)}</a>`:''} ${pick.desc?`<button class="picks-why-btn" onclick="event.stopPropagation();togglePicksWhy(this)">Details ▾</button>`:''}</div>`:'';
         const whyBody=pick.desc?`<div class="picks-why-body" style="display:none">${esc(pick.desc)}</div>`:'';
@@ -1303,7 +1317,7 @@ function renderDest(dest){
   // --- Recently Removed ---
   const trashOpen=sectionOpen('trash',dest.id);
   const trashCard=el('div','trash-card');
-  trashCard.innerHTML=`<div class="trash-card-top" onclick="toggleSection('trash','${dest.id}')"><div class="trash-tag">Recently Removed</div><span class="section-chevron" id="chevron-trash-${dest.id}">${trashOpen?'▾':'▸'}</span></div><div id="trash-body-${dest.id}" style="${trashOpen?'':'display:none'}"><div class="trash-list" id="trash-list-${dest.id}"></div></div>`;
+  trashCard.innerHTML=`<div class="trash-card-top" onclick="toggleSection('trash','${dest.id}')"><div class="trash-tag">Recently Removed</div><div style="display:flex;align-items:center;gap:8px"><button class="trash-clear-btn" onclick="event.stopPropagation();clearTrash('${dest.id}')">Clear all</button><span class="section-chevron" id="chevron-trash-${dest.id}">${trashOpen?'▾':'▸'}</span></div></div><div id="trash-body-${dest.id}" style="${trashOpen?'':'display:none'}"><div class="trash-list" id="trash-list-${dest.id}"></div></div>`;
   sidebar.appendChild(trashCard);
   // NOTE: renderPicks/renderTrash/setupPicksSearch called in render() after fragment is in DOM
 
