@@ -62,23 +62,6 @@
           "joinSub": null,
           "events": [
             {
-              "id": "arrive-lausanne",
-              "type": "accommodation",
-              "category": "Accommodation · Arrival",
-              "name": "Arrive in Lausanne",
-              "subtitle": "Check into the apartment on Av. Montagibert.",
-              "time": null,
-              "timeLabel": null,
-              "address": "Av. Montagibert #2 20, 1005 Lausanne, Switzerland",
-              "appleMaps": "https://maps.apple.com/?address=Avenue+Montagibert+20,+1005+Lausanne,+Switzerland",
-              "googleMaps": "https://www.google.com/maps/search/Avenue+Montagibert+20+Lausanne",
-              "website": null,
-              "menu": null,
-              "photo": null,
-              "confirmationNumber": null,
-              "notes": null
-            },
-            {
               "id": "email-1780877114920-bpp",
               "type": "flight",
               "category": "Flight · KL1931",
