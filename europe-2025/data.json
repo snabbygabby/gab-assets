@@ -73,6 +73,23 @@
               "flightNumber": "KL1931",
               "confirmationNumber": "Y6NJL9",
               "notes": "Operated by KLM. Boeing 737-800. Economy Class. Arrives Geneva 11:10. Passenger: Gabrielle Stieglitz."
+            },
+            {
+              "id": "ev-1780943375774",
+              "type": "activity",
+              "category": "Activity",
+              "name": "Lavaux Vineyards",
+              "subtitle": null,
+              "time": null,
+              "timeLabel": null,
+              "address": "Lavaux Vineyards, Lausanne",
+              "appleMaps": "https://maps.apple.com/?q=Lavaux%20Vineyards%20Lausanne",
+              "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%20Lausanne",
+              "website": null,
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
             }
           ],
           "note": "test"
@@ -155,15 +172,6 @@
         }
       ],
       "wishlist": [
-        {
-          "id": "wish-1780943346788",
-          "name": "Lavaux Vineyards",
-          "address": "Lavaux Vineyards, Lausanne",
-          "appleMaps": "https://maps.apple.com/?q=Lavaux%20Vineyards%20Lausanne",
-          "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%20Lausanne",
-          "website": null,
-          "notes": "UNESCO wine terraces, 30 min away"
-        },
         {
           "id": "wish-1780943349289",
           "name": "Escaliers du Marché",
