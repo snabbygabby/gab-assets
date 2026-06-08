@@ -2,7 +2,12 @@
   "meta": {
     "title": "Switzerland & Côte d'Azur",
     "subtitle": "July 9 – 22, 2026",
-    "travelers": ["Gabby", "Griffin", "Olivia", "Anna"]
+    "travelers": [
+      "Gabby",
+      "Griffin",
+      "Olivia",
+      "Anna"
+    ]
   },
   "destinations": [
     {
@@ -47,6 +52,19 @@
               "photo": null,
               "confirmationNumber": null,
               "notes": null
+            },
+            {
+              "id": "email-1780877114920-bpp",
+              "type": "flight",
+              "category": "Flight · KL1931",
+              "fromIATA": "AMS",
+              "fromCity": "Amsterdam",
+              "toIATA": "GVA",
+              "toCity": "Geneva",
+              "time": "09:45",
+              "flightNumber": "KL1931",
+              "confirmationNumber": "Y6NJL9",
+              "notes": "Operated by KLM. Boeing 737-800. Economy Class. Arrives Geneva 11:10. Passenger: Gabrielle Stieglitz."
             }
           ]
         },
@@ -144,7 +162,10 @@
           "num": "14",
           "weekday": "Tuesday",
           "label": "July 14 · Fête Nationale",
-          "badge": { "text": "🇫🇷 Bastille Day", "color": "#BF3B3B" },
+          "badge": {
+            "text": "🇫🇷 Bastille Day",
+            "color": "#BF3B3B"
+          },
           "join": false,
           "joinTitle": null,
           "joinSub": null,
