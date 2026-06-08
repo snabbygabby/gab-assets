@@ -86,7 +86,25 @@
           "join": false,
           "joinTitle": null,
           "joinSub": null,
-          "events": []
+          "events": [
+            {
+              "id": "email-1780881500780-jc3",
+              "type": "restaurant",
+              "category": "Restaurant",
+              "name": "Eat Me - Lausanne",
+              "subtitle": "Reservation for 2 guests. Phone: +41 21 311 76 59",
+              "time": "8:30 PM – 10:30 PM",
+              "timeLabel": null,
+              "address": "Rue Pépinet 3, 1003 Lausanne",
+              "appleMaps": "https://maps.apple.com/?address=Rue%20P%C3%A9pinet%203%2C%201003%20Lausanne&q=Eat%20Me%20-%20Lausanne",
+              "googleMaps": "https://www.google.com/maps/search/Rue%20P%C3%A9pinet%203%2C%201003%20Lausanne",
+              "website": null,
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": null,
+              "notes": null
+            }
+          ]
         },
         {
           "id": "2026-07-11",
