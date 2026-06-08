@@ -115,7 +115,7 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .picks-name-row { display:flex; align-items:baseline; gap:5px; }
 .picks-name { font-size:11px; font-weight:500; color:var(--ink); line-height:1.3; }
 .picks-price { font-size:8px; font-weight:600; color:var(--sand); letter-spacing:.05em; flex-shrink:0; }
-.picks-note { font-size:9px; color:var(--ink-60); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.picks-note { font-size:9px; color:var(--ink-60); margin-top:1px; line-height:1.35; }
 .picks-meta-row { display:flex; align-items:center; gap:7px; margin-top:3px; flex-wrap:wrap; }
 .picks-ig { font-size:9px; color:var(--ink-30); text-decoration:none; transition:color .15s; white-space:nowrap; }
 .picks-ig:hover { color:var(--sand); }
@@ -270,6 +270,9 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .card.accom-brief .flight-detail-val { white-space:normal; max-width:220px; }
 .card.accom-brief .flight-divider-h { background:rgba(0,0,0,.09); }
 .card.accom-brief .card-action-btn { background:rgba(0,0,0,.08); }
+.accom-brief-links { display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+.accom-brief-link { font-size:9px; font-weight:500; color:#8A9A86; text-decoration:none; white-space:nowrap; display:flex; align-items:center; gap:3px; transition:color .15s; }
+.accom-brief-link:hover { color:var(--ink); }
 
 /* PLACEHOLDER */
 .card.placeholder { background:transparent; border-style:dashed; box-shadow:none; cursor:pointer; min-height:88px; display:flex; align-items:center; justify-content:center; padding:24px; overflow:hidden; }
@@ -1302,7 +1305,8 @@ function renderEvent(event,dayId){
       // 1-night accommodation → horizontal sage green card (like flight)
       card.classList.add('accom-brief');
       const checkinText=event.time||event.timeLabel;
-      inner.innerHTML=`<div class="accom-brief-main"><div class="accom-brief-name-h">${esc(event.name)}</div><div class="accom-brief-nights">1 night</div></div>${checkinText?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Check-in / out</div><div class="flight-detail-val">${esc(checkinText)}</div></div>`:''} ${event.address?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Address</div><div class="flight-detail-val">${esc(event.address)}</div></div>`:''} ${event.confirmationNumber?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Conf</div><div class="flight-detail-val">${esc(event.confirmationNumber)}</div></div>`:''}<div class="flight-spacer"></div><div class="flight-cat-h">ACCOMMODATION</div>`;
+      const accomLinks=(event.appleMaps||event.googleMaps||event.website)?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Links</div><div class="accom-brief-links">${event.appleMaps?`<a class="accom-brief-link" href="${esc(event.appleMaps)}" target="_blank">${PIN} Apple Maps</a>`:''} ${event.googleMaps?`<a class="accom-brief-link" href="${esc(event.googleMaps)}" target="_blank">${PIN} Google Maps</a>`:''} ${event.website?`<a class="accom-brief-link" href="${esc(event.website)}" target="_blank">↗ Website</a>`:''}</div></div>`:'';
+      inner.innerHTML=`<div class="accom-brief-main"><div class="accom-brief-name-h">${esc(event.name)}</div><div class="accom-brief-nights">1 night</div></div>${checkinText?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Check-in / out</div><div class="flight-detail-val">${esc(checkinText)}</div></div>`:''} ${event.address?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Address</div><div class="flight-detail-val">${esc(event.address)}</div></div>`:''} ${event.confirmationNumber?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Conf</div><div class="flight-detail-val">${esc(event.confirmationNumber)}</div></div>`:''} ${accomLinks}<div class="flight-spacer"></div><div class="flight-cat-h">ACCOMMODATION</div>`;
     }else{
       // Standard card with "Details" toggle for subtitle
       card.draggable=true;card.dataset.id=event.id;
