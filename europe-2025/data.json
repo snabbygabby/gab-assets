@@ -163,6 +163,15 @@
           "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%20Lausanne",
           "website": null,
           "notes": "UNESCO wine terraces, 30 min away"
+        },
+        {
+          "id": "wish-1780943342927",
+          "name": "Lavaux Vineyards",
+          "address": "Lavaux Vineyards, Lausanne",
+          "appleMaps": "https://maps.apple.com/?q=Lavaux%20Vineyards%20Lausanne",
+          "googleMaps": "https://www.google.com/maps/search/Lavaux%20Vineyards%20Lausanne",
+          "website": null,
+          "notes": "UNESCO wine terraces, 30 min away"
         }
       ]
     },
