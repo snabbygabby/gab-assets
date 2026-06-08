@@ -122,6 +122,41 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .picks-empty { font-size:11px; color:var(--ink-30); text-align:center; padding:16px 10px; font-style:italic; line-height:1.6; }
 .picks-reset { background:none; border:none; cursor:pointer; color:var(--sand); font-size:11px; text-decoration:underline; font-family:'Inter',sans-serif; margin-top:4px; display:block; margin-inline:auto; }
 
+/* PICKS SEARCH */
+.picks-search-row { padding:7px 8px 6px; border-bottom:1px solid var(--rule); }
+.picks-search-input { width:100%; border:1px solid var(--rule); border-radius:3px; padding:7px 10px; font-size:12px; font-family:'Inter',sans-serif; color:var(--ink); background:var(--cream); outline:none; transition:border-color .15s; }
+.picks-search-input:focus { border-color:var(--sand); }
+.picks-search-input::placeholder { color:var(--ink-30); }
+.picks-search-results { max-height:260px; overflow-y:auto; }
+.picks-search-item { display:flex; align-items:stretch; border-bottom:1px solid var(--rule); }
+.picks-search-item:last-child { border-bottom:none; }
+.picks-search-item-main { display:flex; align-items:center; gap:7px; padding:7px 8px; flex:1; cursor:pointer; transition:background .15s; min-width:0; }
+.picks-search-item-main:hover { background:var(--sand-light); }
+.picks-search-emoji { font-size:13px; flex-shrink:0; line-height:1; }
+.picks-search-info { flex:1; min-width:0; }
+.picks-search-name { font-size:11px; font-weight:500; color:var(--ink); }
+.picks-search-meta { font-size:9px; color:var(--ink-60); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+.picks-search-ext { display:flex; align-items:center; padding:0 10px; font-size:11px; color:var(--sand); text-decoration:none; border-left:1px solid var(--rule); flex-shrink:0; transition:background .15s, color .15s; white-space:nowrap; }
+.picks-search-ext:hover { background:var(--sand-light); color:var(--ink); }
+.picks-search-status { font-size:10px; color:var(--ink-30); text-align:center; padding:10px 8px; font-style:italic; }
+.picks-divider { font-size:8px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-30); padding:6px 10px 4px; border-top:1px solid var(--rule); margin-top:2px; }
+
+/* TRASH — RECENTLY REMOVED */
+.trash-card { background:var(--white); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--sh-sm); overflow:hidden; margin-top:10px; }
+.trash-card-top { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:background .15s; }
+.trash-card-top:hover { background:var(--cream); }
+.trash-tag { font-size:8px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-30); }
+.trash-list { padding:4px 0; }
+.trash-item { display:flex; align-items:center; gap:7px; padding:7px 10px; border-bottom:1px solid var(--rule); }
+.trash-item:last-child { border-bottom:none; }
+.trash-emoji { font-size:14px; flex-shrink:0; line-height:1; }
+.trash-info { flex:1; min-width:0; }
+.trash-name { font-size:11px; font-weight:500; color:var(--ink-60); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.trash-source { font-size:9px; color:var(--ink-30); margin-top:1px; }
+.trash-restore { background:none; border:1px solid var(--rule); border-radius:3px; padding:3px 8px; font-size:9px; font-weight:500; color:var(--ink-60); cursor:pointer; font-family:'Inter',sans-serif; flex-shrink:0; transition:all .15s; }
+.trash-restore:hover { border-color:var(--sand); color:var(--ink); }
+.trash-empty { font-size:10px; color:var(--ink-30); text-align:center; padding:14px 10px; font-style:italic; }
+
 /* DAYS */
 .days-content { min-width:0; }
 .day { padding:44px 0 12px; }
@@ -346,6 +381,8 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
   .wish-search { font-size:16px; padding:10px 12px; }
   .wish-ac-item { padding:10px 12px; }
   .wish-item { padding:9px 10px; }
+  /* Picks search */
+  .picks-search-input { font-size:16px; padding:10px 12px; }
 
   /* Modal: sheet slides up from bottom */
   .modal-overlay { align-items:flex-end; padding:0; }
@@ -373,7 +410,6 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 <nav class="nav">
   <div class="nav-title">Switzerland & Côte d'Azur</div>
   <div class="nav-pill">July 8 – 22, 2026</div>
-  <div class="nav-pill">Gabby · Griffin · Olivia · Anna</div>
   <button class="nav-settings" onclick="openSettings()" title="Settings">⚙</button>
 </nav>
 
@@ -717,6 +753,78 @@ const CITY_PICKS={
   ]
 };
 
+const CITY_COORDS={lausanne:{lat:46.52,lon:6.63},nice:{lat:43.71,lon:7.26}};
+
+// TRASH — recently removed picks + wishlist items (localStorage only)
+function getTrash(destId){try{return JSON.parse(localStorage.getItem(`trash-${destId}`)||'[]');}catch{return[];}}
+function addToTrash(destId,item){const trash=getTrash(destId).filter(t=>t.id!==item.id);trash.unshift(item);if(trash.length>30)trash.length=30;try{localStorage.setItem(`trash-${destId}`,JSON.stringify(trash));}catch{}}
+function renderTrash(destId){
+  const list=document.getElementById(`trash-list-${destId}`);if(!list)return;
+  const trash=getTrash(destId);list.innerHTML='';
+  if(!trash.length){list.innerHTML='<div class="trash-empty">Nothing removed yet</div>';return;}
+  trash.forEach(item=>{
+    const row=el('div','trash-item');
+    const emoji=item.source==='picks'?(item.emoji||'✦'):'📍';
+    row.innerHTML=`<span class="trash-emoji">${emoji}</span><div class="trash-info"><div class="trash-name">${esc(item.name)}</div><div class="trash-source">${item.source==='picks'?'Explore':'Wishlist'}</div></div><button class="trash-restore" onclick="restoreFromTrash('${esc(destId)}','${esc(item.id)}')">↩ Restore</button>`;
+    list.appendChild(row);
+  });
+}
+function restoreFromTrash(destId,itemId){
+  const trash=getTrash(destId);
+  const item=trash.find(t=>t.id===itemId);if(!item)return;
+  try{localStorage.setItem(`trash-${destId}`,JSON.stringify(trash.filter(t=>t.id!==itemId)));}catch{}
+  if(item.source==='picks'){
+    const dismissed=getDismissedPicks(destId).filter(id=>id!==itemId);
+    try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
+    renderPicks(destId);renderTrash(destId);showToast(`${item.name} restored to Explore ✓`);
+  }else{
+    const wishItem={id:'wish-'+Date.now(),name:item.name,address:item.address||null,appleMaps:item.appleMaps||null,googleMaps:item.googleMaps||null,website:item.website||null,notes:item.notes||null};
+    addToWishlist(destId,wishItem);renderTrash(destId);
+  }
+}
+
+// PICKS SEARCH — Photon with city bias, results link to Google Maps
+async function searchPicks(destId){
+  const input=document.getElementById(`picks-search-${destId}`);
+  const results=document.getElementById(`picks-search-results-${destId}`);
+  const divider=document.getElementById(`picks-divider-${destId}`);
+  if(!input||!results)return;
+  const q=input.value.trim();
+  if(!q){results.innerHTML='';if(divider)divider.style.display='none';return;}
+  results.innerHTML='<div class="picks-search-status">Searching…</div>';
+  const c=CITY_COORDS[destId]||{};
+  const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lang=en${c.lat?`&lat=${c.lat}&lon=${c.lon}`:''}`;
+  try{
+    const res=await fetch(url);const d=await res.json();
+    const features=(d.features||[]).filter(f=>photonName(f));
+    results.innerHTML='';
+    if(divider)divider.style.display=features.length?'':'none';
+    if(!features.length){results.innerHTML='<div class="picks-search-status">No results — try a different term</div>';return;}
+    features.forEach(f=>{
+      const name=photonName(f);
+      const cat=photonCategory(f);const addr=photonAddr(f);const full=photonFull(f);
+      const geo=f.geometry?.coordinates;
+      const mapsUrl=geo?`https://www.google.com/maps?q=${geo[1]},${geo[0]}`:`https://www.google.com/maps/search/${encodeURIComponent(name+(addr?' '+addr:''))}`;
+      const catEmoji=cat?cat.split(' ')[0]:'📍';
+      const catLabel=cat?cat.replace(/^\S+\s/,''):'';
+      const meta=[catLabel,addr].filter(Boolean).join(' · ');
+      const item=el('div','picks-search-item');
+      item.innerHTML=`<div class="picks-search-item-main"><span class="picks-search-emoji">${catEmoji}</span><div class="picks-search-info"><div class="picks-search-name">${esc(name)}</div><div class="picks-search-meta">${esc(meta)}</div></div><span class="picks-add-icon">+</span></div><a class="picks-search-ext" href="${esc(mapsUrl)}" target="_blank" title="Open in Google Maps">↗</a>`;
+      item.querySelector('.picks-search-item-main').addEventListener('click',()=>{
+        const wishItem={id:'wish-'+Date.now(),name,address:full||addr,appleMaps:`https://maps.apple.com/?q=${encodeURIComponent(name)}`,googleMaps:mapsUrl,website:null,notes:null};
+        addToWishlist(destId,wishItem);
+      });
+      results.appendChild(item);
+    });
+  }catch{results.innerHTML='<div class="picks-search-status">Search failed</div>';if(divider)divider.style.display='none';}
+}
+function setupPicksSearch(destId){
+  const input=document.getElementById(`picks-search-${destId}`);if(!input)return;
+  let timer=null;
+  input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>searchPicks(destId),260);});
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(timer);searchPicks(destId);}});
+}
+
 // PICKS FUNCTIONS
 function getDismissedPicks(destId){try{return JSON.parse(localStorage.getItem(`dismissed-picks-${destId}`)||'[]');}catch{return[];}}
 function renderPicks(destId){
@@ -743,9 +851,11 @@ function dismissPick(e,destId,pickId){
   const dismissed=getDismissedPicks(destId);
   if(!dismissed.includes(pickId))dismissed.push(pickId);
   try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
+  const pick=(CITY_PICKS[destId]||[]).find(p=>p.id===pickId);
+  if(pick)addToTrash(destId,{id:pickId,source:'picks',name:pick.name,emoji:pick.emoji,note:pick.note});
   const item=document.querySelector(`#picks-list-${destId} [data-id="${pickId}"]`);
-  if(item){item.style.opacity='0';item.style.transform='translateX(8px)';setTimeout(()=>renderPicks(destId),200);}
-  else renderPicks(destId);
+  if(item){item.style.opacity='0';item.style.transform='translateX(8px)';setTimeout(()=>{renderPicks(destId);renderTrash(destId);},200);}
+  else{renderPicks(destId);renderTrash(destId);}
 }
 function addPickToWishlist(destId,pickId){
   const pick=(CITY_PICKS[destId]||[]).find(p=>p.id===pickId);if(!pick)return;
@@ -768,9 +878,12 @@ async function addToWishlist(destId,wishItem){
 }
 async function removeFromWishlist(destId,wishId){
   if(!confirm('Remove from wishlist?'))return;
+  const srcDest=S.data.destinations.find(d=>d.id===destId);
+  const srcItem=srcDest?.wishlist?.find(w=>w.id===wishId);
+  if(srcItem)addToTrash(destId,{...srcItem,source:'wishlist'});
   const data=JSON.parse(JSON.stringify(S.data));
   for(const dest of data.destinations)if(dest.id===destId){dest.wishlist=(dest.wishlist||[]).filter(w=>w.id!==wishId);break;}
-  try{await ghPut(data,`Remove from ${destId} wishlist`);S.data=data;refreshWishlist(destId);showToast('Removed ✓');}
+  try{await ghPut(data,`Remove from ${destId} wishlist`);S.data=data;refreshWishlist(destId);renderTrash(destId);showToast('Removed ✓');}
   catch(err){showToast(err.message,true);}
 }
 function refreshWishlist(destId){
@@ -825,10 +938,12 @@ function render(data){
   data.destinations.forEach((dest,i)=>{
     if(i>0){const d=el('div','dest-div');d.innerHTML=`<span class="dest-div-label">Côte d'Azur</span>`;main.appendChild(d);}
     main.appendChild(renderDest(dest));
-    // Elements are now in the DOM — safe to wire up wishlist + picks
+    // Elements are now in the DOM — safe to wire up wishlist + picks + trash
     refreshWishlist(dest.id);
     setupWishSearch(dest);
     renderPicks(dest.id);
+    renderTrash(dest.id);
+    setupPicksSearch(dest.id);
   });
   initDrag();
 }
@@ -836,7 +951,7 @@ function render(data){
 function renderDest(dest){
   const frag=document.createDocumentFragment();
   const hero=el('section','hero');
-  hero.innerHTML=`<img class="hero-img" src="${esc(dest.heroImage)}" alt="${esc(dest.heroAlt)}" onerror="this.style.display='none'"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-eyebrow">${esc(dest.eyebrow)}</div><div class="hero-city">${esc(dest.city)}</div><div class="hero-meta"><div class="hero-meta-item"><span class="hero-meta-label">Arrive</span>${esc(dest.arriveLabel)}</div><div class="hero-meta-item"><span class="hero-meta-label">Depart</span>${esc(dest.departLabel)}</div><div class="hero-meta-item"><span class="hero-meta-label">With</span>${esc(dest.travelersLabel)}</div>${dest.joinDate?`<div class="hero-meta-item"><span class="hero-meta-label">Olivia & Anna join</span>${esc(dest.joinTravelersLabel)}</div>`:''}</div></div>`;
+  hero.innerHTML=`<img class="hero-img" src="${esc(dest.heroImage)}" alt="${esc(dest.heroAlt)}" onerror="this.style.display='none'"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-eyebrow">${esc(dest.eyebrow)}</div><div class="hero-city">${esc(dest.city)}</div><div class="hero-meta"><div class="hero-meta-item"><span class="hero-meta-label">Arrive</span>${esc(dest.arriveLabel)}</div><div class="hero-meta-item"><span class="hero-meta-label">Depart</span>${esc(dest.departLabel)}</div><div class="hero-meta-item"><span class="hero-meta-label">With</span>${esc(dest.travelersLabel)}</div></div></div>`;
   frag.appendChild(hero);
 
   const wrap=el('div','wrap');
@@ -861,9 +976,15 @@ function renderDest(dest){
   // --- Top Picks ---
   const picksOpen=sectionOpen('picks',dest.id);
   const picksCard=el('div','picks-card');
-  picksCard.innerHTML=`<div class="picks-card-top" onclick="toggleSection('picks','${dest.id}')"><div class="picks-tag">Explore ${esc(dest.city)}</div><span class="section-chevron" id="chevron-picks-${dest.id}">${picksOpen?'▾':'▸'}</span></div><div id="picks-body-${dest.id}" style="${picksOpen?'':'display:none'}"><div class="picks-list" id="picks-list-${dest.id}"></div><div class="picks-footer" id="picks-footer-${dest.id}"></div></div>`;
+  picksCard.innerHTML=`<div class="picks-card-top" onclick="toggleSection('picks','${dest.id}')"><div class="picks-tag">Explore ${esc(dest.city)}</div><span class="section-chevron" id="chevron-picks-${dest.id}">${picksOpen?'▾':'▸'}</span></div><div id="picks-body-${dest.id}" style="${picksOpen?'':'display:none'}"><div class="picks-search-row"><input class="picks-search-input" id="picks-search-${dest.id}" type="text" placeholder="Search wineries, dinner spots…" autocomplete="off"></div><div class="picks-search-results" id="picks-search-results-${dest.id}"></div><div class="picks-divider" id="picks-divider-${dest.id}" style="display:none">Top Picks</div><div class="picks-list" id="picks-list-${dest.id}"></div><div class="picks-footer" id="picks-footer-${dest.id}"></div></div>`;
   sidebar.appendChild(picksCard);
-  // NOTE: renderPicks called in render() after fragment is in DOM
+
+  // --- Recently Removed ---
+  const trashOpen=sectionOpen('trash',dest.id);
+  const trashCard=el('div','trash-card');
+  trashCard.innerHTML=`<div class="trash-card-top" onclick="toggleSection('trash','${dest.id}')"><div class="trash-tag">Recently Removed</div><span class="section-chevron" id="chevron-trash-${dest.id}">${trashOpen?'▾':'▸'}</span></div><div id="trash-body-${dest.id}" style="${trashOpen?'':'display:none'}"><div class="trash-list" id="trash-list-${dest.id}"></div></div>`;
+  sidebar.appendChild(trashCard);
+  // NOTE: renderPicks/renderTrash/setupPicksSearch called in render() after fragment is in DOM
 
   layout.appendChild(sidebar);
 
@@ -941,7 +1062,6 @@ function renderDay(day){
   noteInput.addEventListener('keydown',e=>{if(e.key==='Enter')noteInput.blur();if(e.key==='Escape'){noteInput.value=noteOrig;noteInput.blur();}});
   noteInput.addEventListener('blur',()=>{if(noteInput.value.trim()!==noteOrig){saveDayNote(day.id,noteInput.value);noteOrig=noteInput.value.trim();}});
   noteWrap.appendChild(noteInput);dayEl.appendChild(noteWrap);
-  if(day.join){const b=el('div','join-banner');b.innerHTML=`<span class="join-icon">✈️</span><div><div class="join-title">${esc(day.joinTitle)}</div><div class="join-sub">${esc(day.joinSub)}</div></div>`;dayEl.appendChild(b);}
   const grid=el('div','grid');grid.dataset.day=day.id;
 
   // Accept wishlist drops on the grid itself
