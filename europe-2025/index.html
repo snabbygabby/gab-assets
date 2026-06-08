@@ -101,6 +101,27 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .wish-card-top:hover { background:var(--cream); }
 .section-chevron { font-size:11px; color:var(--ink-30); line-height:1; flex-shrink:0; }
 
+/* TOP PICKS */
+.picks-card { background:var(--white); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--sh-sm); overflow:hidden; margin-top:10px; }
+.picks-card-top { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:background .15s; }
+.picks-card-top:hover { background:var(--cream); }
+.picks-tag { font-size:8px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--sand); }
+.picks-list { padding:6px 8px; display:flex; flex-direction:column; gap:4px; }
+.picks-item { display:flex; align-items:stretch; border-radius:3px; border:1px solid var(--rule); background:var(--cream); overflow:hidden; transition:opacity .2s, transform .2s; }
+.picks-item-main { display:flex; align-items:center; gap:7px; padding:7px 8px; flex:1; cursor:pointer; transition:background .15s; min-width:0; }
+.picks-item-main:hover { background:var(--sand-light); }
+.picks-emoji { font-size:15px; flex-shrink:0; line-height:1; }
+.picks-info { flex:1; min-width:0; }
+.picks-name { font-size:11px; font-weight:500; color:var(--ink); line-height:1.3; }
+.picks-note { font-size:9px; color:var(--ink-60); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.picks-add-icon { font-size:14px; color:var(--ink-30); flex-shrink:0; line-height:1; transition:color .15s; font-weight:300; }
+.picks-item-main:hover .picks-add-icon { color:var(--sand); }
+.picks-x { background:none; border:none; border-left:1px solid var(--rule); padding:0 10px; font-size:17px; color:var(--ink-30); cursor:pointer; display:flex; align-items:center; flex-shrink:0; transition:color .15s, background .15s; line-height:1; font-weight:300; }
+.picks-x:hover { color:var(--red); background:rgba(191,59,59,.07); }
+.picks-footer { font-size:9px; color:var(--ink-30); text-align:center; padding:7px; border-top:1px solid var(--rule); letter-spacing:.04em; }
+.picks-empty { font-size:11px; color:var(--ink-30); text-align:center; padding:16px 10px; font-style:italic; line-height:1.6; }
+.picks-reset { background:none; border:none; cursor:pointer; color:var(--sand); font-size:11px; text-decoration:underline; font-family:'Inter',sans-serif; margin-top:4px; display:block; margin-inline:auto; }
+
 /* DAYS */
 .days-content { min-width:0; }
 .day { padding:44px 0 12px; }
@@ -519,6 +540,103 @@ function sectionOpen(type,destId){
   // default: open on desktop, closed on mobile
   return saved!==null?saved==='1':window.innerWidth>=700;
 }
+// CURATED TOP PICKS — pool per destination
+const CITY_PICKS={
+  lausanne:[
+    {id:'lau-01',name:'Ouchy Waterfront',emoji:'🌊',note:'Lake Geneva promenade & marina'},
+    {id:'lau-02',name:'Lausanne Cathedral',emoji:'⛪',note:'Gothic, 13th c. — free entry'},
+    {id:'lau-03',name:'Olympic Museum',emoji:'🏅',note:'Best sports museum in the world'},
+    {id:'lau-04',name:'Lavaux Vineyards',emoji:'🍷',note:'UNESCO wine terraces, 30 min away'},
+    {id:'lau-05',name:'Chillon Castle',emoji:'🏰',note:'Medieval castle on the lake (Montreux)'},
+    {id:'lau-06',name:'Place de la Palud',emoji:'⛲',note:'Medieval fountain, Sat market'},
+    {id:'lau-07',name:'Sauvabelin Tower',emoji:'🌲',note:'Forest hike + panoramic views'},
+    {id:'lau-08',name:'Flon District',emoji:'🎨',note:'Trendy bars, galleries & shops'},
+    {id:'lau-09',name:'Collection de l\'Art Brut',emoji:'🖼',note:'Outsider art — totally unique'},
+    {id:'lau-10',name:'Plage de Vidy',emoji:'🏖',note:'Free city beach on the lake'},
+    {id:'lau-11',name:'MUDAC Design Museum',emoji:'✦',note:'Applied arts & contemporary design'},
+    {id:'lau-12',name:'Rolex Learning Center',emoji:'🏛',note:'EPFL\'s stunning wavy building'},
+    {id:'lau-13',name:'Escaliers du Marché',emoji:'🪜',note:'Covered medieval stairway'},
+    {id:'lau-14',name:'Old Town (Cité)',emoji:'🏘',note:'Medieval hilltop heart of Lausanne'},
+    {id:'lau-15',name:'CGN Lake Cruise',emoji:'⛵',note:'Belle Époque steamers on the lake'},
+    {id:'lau-16',name:'Fondation de l\'Hermitage',emoji:'🖼',note:'Art museum in a Victorian villa'},
+    {id:'lau-17',name:'Bains de la Belotte',emoji:'🏊',note:'Lakeside swimming & sunbathing'},
+    {id:'lau-18',name:'Gruyères Day Trip',emoji:'🧀',note:'Fairy-tale castle & fondue'},
+    {id:'lau-19',name:'Saint-Sulpice Church',emoji:'⛪',note:'Romanesque, right on the lake'},
+    {id:'lau-20',name:'Musée Cantonal MCBA',emoji:'🖼',note:'Fine arts in the new Platform 10'},
+    {id:'lau-21',name:'Montreux Walk',emoji:'🎵',note:'Queen statue, roses, lakeside'},
+    {id:'lau-22',name:'Place de la Riponne',emoji:'🛒',note:'Market square & Palais Rumine'},
+    {id:'lau-23',name:'Musée Romain de Vidy',emoji:'🏺',note:'Roman ruins by the lake'},
+    {id:'lau-24',name:'Lutry Wine Village',emoji:'🍇',note:'15 min east, vineyard village'},
+    {id:'lau-25',name:'Parc Mon Repos',emoji:'🌿',note:'Tranquil gardens & lake views'},
+  ],
+  nice:[
+    {id:'nic-01',name:'Vieux-Nice Old Town',emoji:'🏘',note:'Baroque facades, food stalls'},
+    {id:'nic-02',name:'Promenade des Anglais',emoji:'🌊',note:'The iconic 7 km seafront'},
+    {id:'nic-03',name:'Cours Saleya Market',emoji:'🌸',note:'Flowers & produce — mornings only'},
+    {id:'nic-04',name:'Castle Hill',emoji:'🏰',note:'Best views over the city & bay'},
+    {id:'nic-05',name:'Cap d\'Antibes Walk',emoji:'🌿',note:'Coastal path, Villa Eilenroc'},
+    {id:'nic-06',name:'Antibes Old Town',emoji:'⚓',note:'Fortified port, Picasso Museum'},
+    {id:'nic-07',name:'Eze Village',emoji:'🌵',note:'Perched medieval village, perfume'},
+    {id:'nic-08',name:'Monaco',emoji:'🎰',note:'Casino, palace, F1 circuit'},
+    {id:'nic-09',name:'Matisse Museum',emoji:'🎨',note:'17 galleries in a Genoese villa'},
+    {id:'nic-10',name:'Chagall Museum',emoji:'🖼',note:'Stained glass & biblical paintings'},
+    {id:'nic-11',name:'Bastille Day Fireworks',emoji:'🎆',note:'July 14 — Promenade des Anglais'},
+    {id:'nic-12',name:'Cap Ferrat',emoji:'⛵',note:'Peninsula walk, Villa Ephrussi'},
+    {id:'nic-13',name:'Villefranche-sur-Mer',emoji:'🎨',note:'Colorful fishing port, chapel'},
+    {id:'nic-14',name:'Plage de la Garoupe',emoji:'🏖',note:'Best beach near Antibes'},
+    {id:'nic-15',name:'Juan-les-Pins',emoji:'🎵',note:'Jazz Festival beach town'},
+    {id:'nic-16',name:'Saint-Paul-de-Vence',emoji:'🖼',note:'Art galleries & medieval walls'},
+    {id:'nic-17',name:'Gorges du Verdon',emoji:'🏞',note:'Grand Canyon of Europe'},
+    {id:'nic-18',name:'Îles de Lérins',emoji:'🏝',note:'Ferry from Cannes, island monastery'},
+    {id:'nic-19',name:'Grasse',emoji:'💐',note:'Perfume capital, factory tours'},
+    {id:'nic-20',name:'Cannes',emoji:'🎬',note:'Croisette boulevard, beach clubs'},
+    {id:'nic-21',name:'Biot Village',emoji:'🫧',note:'Glassblowing & medieval lanes'},
+    {id:'nic-22',name:'Place Masséna',emoji:'⛲',note:'Nice\'s grand main square'},
+    {id:'nic-23',name:'MAMAC',emoji:'🎨',note:'Contemporary art + great rooftop'},
+    {id:'nic-24',name:'Menton',emoji:'🍋',note:'Lemon town near the Italian border'},
+    {id:'nic-25',name:'Mougins Village',emoji:'🍽',note:'Medieval village, Picasso\'s retreat'},
+  ]
+};
+
+// PICKS FUNCTIONS
+function getDismissedPicks(destId){try{return JSON.parse(localStorage.getItem(`dismissed-picks-${destId}`)||'[]');}catch{return[];}}
+function renderPicks(destId){
+  const list=document.getElementById(`picks-list-${destId}`);
+  const footer=document.getElementById(`picks-footer-${destId}`);
+  if(!list)return;
+  const all=CITY_PICKS[destId]||[];
+  const dismissed=getDismissedPicks(destId);
+  const available=all.filter(p=>!dismissed.includes(p.id));
+  list.innerHTML='';
+  if(!available.length){
+    list.innerHTML=`<div class="picks-empty">You've seen them all!<button class="picks-reset" onclick="resetPicks('${destId}')">Start over</button></div>`;
+    if(footer)footer.textContent='';return;
+  }
+  available.forEach(pick=>{
+    const item=el('div','picks-item');item.dataset.id=pick.id;
+    item.innerHTML=`<div class="picks-item-main" onclick="addPickToWishlist('${destId}','${pick.id}')"><span class="picks-emoji">${pick.emoji}</span><div class="picks-info"><div class="picks-name">${esc(pick.name)}</div><div class="picks-note">${esc(pick.note)}</div></div><span class="picks-add-icon">+</span></div><button class="picks-x" onclick="dismissPick(event,'${destId}','${pick.id}')" title="Not interested">×</button>`;
+    list.appendChild(item);
+  });
+  if(footer){const n=dismissed.length;footer.textContent=n?`${n} dismissed · ${available.length} remaining`:`${all.length} suggestions`;}
+}
+function dismissPick(e,destId,pickId){
+  e.stopPropagation();
+  const dismissed=getDismissedPicks(destId);
+  if(!dismissed.includes(pickId))dismissed.push(pickId);
+  try{localStorage.setItem(`dismissed-picks-${destId}`,JSON.stringify(dismissed));}catch{}
+  const item=document.querySelector(`#picks-list-${destId} [data-id="${pickId}"]`);
+  if(item){item.style.opacity='0';item.style.transform='translateX(8px)';setTimeout(()=>renderPicks(destId),200);}
+  else renderPicks(destId);
+}
+function addPickToWishlist(destId,pickId){
+  const pick=(CITY_PICKS[destId]||[]).find(p=>p.id===pickId);if(!pick)return;
+  const dest=S.data.destinations.find(d=>d.id===destId);
+  const city=dest?dest.city:destId;
+  const wishItem={id:'wish-'+Date.now(),name:pick.name,address:pick.name+', '+city,appleMaps:`https://maps.apple.com/?q=${encodeURIComponent(pick.name+' '+city)}`,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`,website:null,notes:pick.note||null};
+  addToWishlist(destId,wishItem);
+}
+function resetPicks(destId){try{localStorage.removeItem(`dismissed-picks-${destId}`);}catch{}renderPicks(destId);}
+
 function saveAccessNotes(destId,value){try{localStorage.setItem(`access-${destId}`,value);}catch(_){}}
 function loadAccessNotes(destId){try{return localStorage.getItem(`access-${destId}`)||'';}catch(_){return '';}}
 
@@ -588,9 +706,10 @@ function render(data){
   data.destinations.forEach((dest,i)=>{
     if(i>0){const d=el('div','dest-div');d.innerHTML=`<span class="dest-div-label">Côte d'Azur</span>`;main.appendChild(d);}
     main.appendChild(renderDest(dest));
-    // Elements are now in the DOM — safe to wire up wishlist
+    // Elements are now in the DOM — safe to wire up wishlist + picks
     refreshWishlist(dest.id);
     setupWishSearch(dest);
+    renderPicks(dest.id);
   });
   initDrag();
 }
@@ -619,7 +738,13 @@ function renderDest(dest){
   const wishCard=el('div','wish-card');
   wishCard.innerHTML=`<div class="wish-card-top" onclick="toggleSection('wish','${dest.id}')"><div class="wish-tag">Places to Visit</div><span class="section-chevron" id="chevron-wish-${dest.id}">${wishOpen?'▾':'▸'}</span></div><div id="wish-body-${dest.id}" style="${wishOpen?'':'display:none'}"><div class="wish-search-row"><input class="wish-search" id="wish-search-${dest.id}" type="text" placeholder="Search places in ${esc(dest.city)}…" autocomplete="off"><div class="wish-ac-list" id="wish-ac-${dest.id}"></div></div><div class="wish-list" id="wish-list-${dest.id}"></div></div>`;
   sidebar.appendChild(wishCard);
-  // NOTE: refreshWishlist + setupWishSearch called in render() after fragment is in DOM
+
+  // --- Top Picks ---
+  const picksOpen=sectionOpen('picks',dest.id);
+  const picksCard=el('div','picks-card');
+  picksCard.innerHTML=`<div class="picks-card-top" onclick="toggleSection('picks','${dest.id}')"><div class="picks-tag">Explore ${esc(dest.city)}</div><span class="section-chevron" id="chevron-picks-${dest.id}">${picksOpen?'▾':'▸'}</span></div><div id="picks-body-${dest.id}" style="${picksOpen?'':'display:none'}"><div class="picks-list" id="picks-list-${dest.id}"></div><div class="picks-footer" id="picks-footer-${dest.id}"></div></div>`;
+  sidebar.appendChild(picksCard);
+  // NOTE: renderPicks called in render() after fragment is in DOM
 
   layout.appendChild(sidebar);
 
