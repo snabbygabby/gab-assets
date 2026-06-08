@@ -93,6 +93,14 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .wish-del { color:var(--ink-30); background:none; border:none; cursor:pointer; font-size:16px; padding:0 2px; flex-shrink:0; transition:color .15s; line-height:1; }
 .wish-del:hover { color:var(--red); }
 .grid.wish-over { outline:2px dashed var(--sand); outline-offset:3px; border-radius:3px; }
+.wish-emoji { font-size:14px; flex-shrink:0; line-height:1; }
+.wish-add-day { background:none; border:1px solid var(--rule); border-radius:3px; padding:3px 8px; font-size:9px; font-weight:600; color:var(--ink-60); cursor:pointer; font-family:'Inter',sans-serif; flex-shrink:0; transition:all .15s; letter-spacing:.04em; }
+.wish-add-day:hover { border-color:var(--sand); color:var(--ink); }
+/* PICKS POPUP */
+.picks-popup { position:fixed; z-index:900; background:var(--white); border:1px solid var(--rule); border-radius:4px; box-shadow:var(--sh-lg); overflow:hidden; min-width:164px; }
+.picks-popup-btn { display:flex; align-items:center; gap:8px; width:100%; padding:10px 14px; font-size:11px; font-weight:500; color:var(--ink); background:none; border:none; border-bottom:1px solid var(--rule); cursor:pointer; text-align:left; font-family:'Inter',sans-serif; white-space:nowrap; transition:background .12s; }
+.picks-popup-btn:last-child { border-bottom:none; }
+.picks-popup-btn:hover { background:var(--sand-light); }
 
 /* SECTION TOGGLE HEADERS */
 .accom-card-top { cursor:pointer; transition:background .15s; }
@@ -505,7 +513,7 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
           </div>
         </div>
         <div id="f-standard">
-          <div class="form-row"><div class="form-field"><label class="form-label">Name *</label><input class="form-input" id="f-name" type="text" placeholder="e.g. La Merenda, Hike to Èze…" required></div></div>
+          <div class="form-row"><div class="form-field"><label class="form-label">Name *</label><div class="ac-wrap"><input class="form-input" id="f-name" type="text" placeholder="e.g. Hôtel Eden Roc, La Merenda…" required autocomplete="off"><div class="ac-list" id="name-ac-list"></div></div></div></div>
           <div class="form-row cols-2">
             <div class="form-field"><label class="form-label">Time</label><input class="form-input" id="f-time" type="text" placeholder="e.g. Check-in 3 PM / Check-out 11 AM"></div>
             <div class="form-field"><label class="form-label">Confirmation #</label><input class="form-input" id="f-conf" type="text" placeholder="Optional"></div>
@@ -951,6 +959,58 @@ function restoreFromTrash(destId,itemId){
   renderPicks(destId);renderTrash(destId);showToast(`${item.name} restored ✓`);
 }
 
+// WISHLIST (localStorage only — never saved to GitHub)
+function getWishlist(destId){try{return JSON.parse(localStorage.getItem(`wl-${destId}`)||'[]');}catch{return[];}}
+function saveWishlist(destId,items){try{localStorage.setItem(`wl-${destId}`,JSON.stringify(items));}catch{}}
+function addPickToWishlist(destId,pick){
+  const items=getWishlist(destId);
+  if(!items.find(i=>i.id===pick.id)){items.unshift({id:pick.id,name:pick.name,note:pick.note||'',emoji:pick.emoji||'📍',price:pick.price||null,googleMaps:pick.googleMaps||null});}
+  saveWishlist(destId,items);renderWishlist(destId);
+  showToast(`${pick.name} saved to wishlist ♡`);
+}
+function removeFromWishlist(destId,itemId){saveWishlist(destId,getWishlist(destId).filter(i=>i.id!==itemId));renderWishlist(destId);}
+function renderWishlist(destId){
+  const list=document.getElementById(`wish-list-${destId}`);if(!list)return;
+  const items=getWishlist(destId);list.innerHTML='';
+  if(!items.length){list.innerHTML='<div class="wish-empty">No saved spots — tap ♡ on any pick to shortlist</div>';return;}
+  items.forEach(item=>{
+    const row=el('div','wish-item');
+    row.innerHTML=`<span class="wish-emoji">${esc(item.emoji)}</span><div class="wish-info"><div class="wish-name">${esc(item.name)}</div>${item.note?`<div class="wish-addr">${esc(item.note)}</div>`:''}</div><button class="wish-add-day" title="Add to a day">↗</button><button class="wish-del" title="Remove">×</button>`;
+    const city=destId;
+    row.querySelector('.wish-add-day').addEventListener('click',e2=>{e2.stopPropagation();openPickToDay(destId,{name:item.name,address:item.name+(city?', '+city:''),note:item.note,googleMaps:item.googleMaps||`https://www.google.com/maps/search/${encodeURIComponent(item.name+(city?' '+city:''))}`});});
+    row.querySelector('.wish-del').addEventListener('click',e2=>{e2.stopPropagation();removeFromWishlist(destId,item.id);});
+    list.appendChild(row);
+  });
+}
+
+// PICKS POPUP — choose itinerary vs wishlist when tapping + on any pick
+let _ppCtx=null;
+function showPicksPopup(e,destId,item){
+  e.stopPropagation();
+  _ppCtx={destId,item};
+  const popup=document.getElementById('picks-popup');
+  popup.style.display='block';
+  const anchor=(e.currentTarget.closest('.picks-item,.picks-search-item')||e.currentTarget).getBoundingClientRect();
+  let top=anchor.bottom+4,left=anchor.right-166;
+  if(top+110>window.innerHeight)top=anchor.top-114;
+  if(left<6)left=6;
+  if(left+166>window.innerWidth-6)left=window.innerWidth-172;
+  popup.style.top=top+'px';popup.style.left=left+'px';
+}
+function hidePicksPopup(){const p=document.getElementById('picks-popup');if(p)p.style.display='none';_ppCtx=null;}
+function picksPopupItinerary(){
+  if(!_ppCtx)return;
+  const{destId,item}=_ppCtx;
+  openPickToDay(destId,{name:item.name,address:item.address||item.name+(destId?', '+destId:''),note:item.note,googleMaps:item.googleMaps||item.mapsUrl||`https://www.google.com/maps/search/${encodeURIComponent(item.name+' '+destId)}`});
+  hidePicksPopup();
+}
+function picksPopupWishlist(){
+  if(!_ppCtx)return;
+  const{destId,item}=_ppCtx;
+  addPickToWishlist(destId,{...item,id:item.id||(item.name.toLowerCase().replace(/\W+/g,'-')+'-'+Date.now())});
+  hidePicksPopup();
+}
+
 // HAVERSINE — distance in km between two lat/lon points
 // HAVERSINE — km between two points
 function haversineKm(lat1,lon1,lat2,lon2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
@@ -1052,7 +1112,7 @@ async function searchPicks(destId){
       const row=el('div','picks-search-item');
       const extHref=item.website||item.mapsUrl;
       row.innerHTML=`<div class="picks-search-item-main"><span class="picks-search-emoji">${item.emoji}</span><div class="picks-search-info"><div class="picks-search-name">${esc(item.name)}</div><div class="picks-search-meta">${esc(item.addr||'')}</div></div><span class="picks-add-icon">+</span></div><a class="picks-search-ext" href="${esc(extHref)}" target="_blank" title="${item.website?'Website':'Google Maps'}">↗</a>`;
-      row.querySelector('.picks-search-item-main').addEventListener('click',()=>openPickToDay(destId,{name:item.name,address:item.addr||item.name,googleMaps:item.mapsUrl}));
+      row.querySelector('.picks-search-item-main').addEventListener('click',e=>showPicksPopup(e,destId,{id:'sr-'+item.name.replace(/\W+/g,'-'),name:item.name,note:item.addr||'',emoji:item.emoji||'📍',address:item.addr||item.name,googleMaps:item.mapsUrl,mapsUrl:item.mapsUrl}));
       results.appendChild(row);
     });
   }catch(err){results.innerHTML=`<div class="picks-search-status">${err.name==='AbortError'?'Took too long — tap again to retry':'Search failed — try again'}</div>`;}
@@ -1124,7 +1184,7 @@ function renderPicks(destId){
         const metaRow=(pick.instagram||pick.desc)?`<div class="picks-meta-row">${pick.instagram?`<a class="picks-ig" href="https://instagram.com/${pick.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()">${esc(pick.instagram)}</a>`:''} ${pick.desc?`<button class="picks-why-btn" onclick="event.stopPropagation();togglePicksWhy(this)">Details ▾</button>`:''}</div>`:'';
         const whyBody=pick.desc?`<div class="picks-why-body" style="display:none">${esc(pick.desc)}</div>`:'';
         item.innerHTML=`<div class="picks-item-main"><span class="picks-emoji">${pick.emoji}</span><div class="picks-info"><div class="picks-name-row"><span class="picks-name">${esc(pick.name)}</span>${pick.price?`<span class="picks-price">${esc(pick.price)}</span>`:''}</div><div class="picks-note">${esc(pick.note)}</div>${metaRow}${whyBody}</div><span class="picks-add-icon">+</span></div><button class="picks-x" onclick="dismissPick(event,'${destId}','${pick.id}')" title="Not interested">×</button>`;
-        item.querySelector('.picks-item-main').addEventListener('click',()=>openPickToDay(destId,{name:pick.name,address:pick.name+', '+city,note:pick.note,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`}));
+        item.querySelector('.picks-item-main').addEventListener('click',e=>showPicksPopup(e,destId,{...pick,address:pick.name+', '+city,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`}));
         wrap.appendChild(item);
       });
     }
@@ -1202,6 +1262,7 @@ function render(data){
     main.appendChild(renderDest(dest));
     // Elements are now in the DOM — safe to wire up picks + trash
     renderPicks(dest.id);
+    renderWishlist(dest.id);
     renderTrash(dest.id);
     setupPicksSearch(dest.id);
   });
@@ -1232,6 +1293,12 @@ function renderDest(dest){
   const picksCard=el('div','picks-card');
   picksCard.innerHTML=`<div class="picks-card-top" onclick="toggleSection('picks','${dest.id}')"><div class="picks-tag">Explore ${esc(dest.city)}</div><span class="section-chevron" id="chevron-picks-${dest.id}">${picksOpen?'▾':'▸'}</span></div><div id="picks-body-${dest.id}" style="${picksOpen?'':'display:none'}"><div class="picks-chips" id="picks-chips-${dest.id}">${EXPLORE_CHIPS.map(c=>`<button class="picks-chip" onclick="chipSearch('${dest.id}','${c.q}',this)">${c.label}</button>`).join('')}</div><div class="picks-search-row"><input class="picks-search-input" id="picks-search-${dest.id}" type="text" placeholder="Or search anything…" autocomplete="off"></div><div class="picks-search-results" id="picks-search-results-${dest.id}"></div><div class="picks-divider" id="picks-divider-${dest.id}" style="display:none">Top Picks</div><div class="picks-list" id="picks-list-${dest.id}"></div><div class="picks-footer" id="picks-footer-${dest.id}"></div></div>`;
   sidebar.appendChild(picksCard);
+
+  // --- Wishlist ---
+  const wishOpen=sectionOpen('wish',dest.id);
+  const wishCard=el('div','wish-card');wishCard.style.marginTop='10px';
+  wishCard.innerHTML=`<div class="wish-card-top" onclick="toggleSection('wish','${dest.id}')"><div class="wish-tag">Wishlist</div><span class="section-chevron" id="chevron-wish-${dest.id}">${wishOpen?'▾':'▸'}</span></div><div id="wish-body-${dest.id}" style="${wishOpen?'':'display:none'}"><div class="wish-list" id="wish-list-${dest.id}"></div></div>`;
+  sidebar.appendChild(wishCard);
 
   // --- Recently Removed ---
   const trashOpen=sectionOpen('trash',dest.id);
@@ -1422,6 +1489,46 @@ function initDrag(){
   });
 })();
 
+// NAME AUTOCOMPLETE — venue search on "Name" field autofills address + website from OSM
+(function initNameAC(){
+  const input=document.getElementById('f-name');const list=document.getElementById('name-ac-list');
+  if(!input||!list)return;
+  let timer=null;
+  input.addEventListener('input',()=>{
+    clearTimeout(timer);const q=input.value.trim();
+    if(q.length<3){list.style.display='none';return;}
+    timer=setTimeout(async()=>{
+      const features=await fetchPhoton(q);list.innerHTML='';
+      if(!features.length){list.style.display='none';return;}
+      features.slice(0,7).forEach(f=>{
+        const name=photonName(f);if(!name)return;
+        const addr=photonAddr(f);const cat=photonCategory(f);
+        const item=el('div','ac-item');
+        item.innerHTML=`<div class="ac-name">${esc(name)}${cat?`<span style="font-size:9px;color:var(--sand);margin-left:5px">${esc(cat.replace(/^\S+\s/,''))}</span>`:''}</div><div class="ac-addr">${esc(addr)}</div>`;
+        item.addEventListener('mousedown',async e2=>{
+          e2.preventDefault();input.value=name;list.style.display='none';
+          const addrInput=document.getElementById('f-addr');
+          if(addrInput)addrInput.value=photonFull(f);
+          // Try to get website from OSM via Overpass
+          const p=f.properties;
+          if(p.osm_id){
+            const t=p.osm_type==='node'?'node':p.osm_type==='way'?'way':'relation';
+            try{
+              const r=await fetch(`https://overpass-api.de/api/interpreter?data=[out:json];${t}(${p.osm_id});out+tags;`);
+              const d=await r.json();const tags=d.elements?.[0]?.tags||{};
+              const webInput=document.getElementById('f-web');
+              if(webInput&&!webInput.value&&tags.website)webInput.value=tags.website;
+            }catch{}
+          }
+        });
+        list.appendChild(item);
+      });
+      list.style.display='block';
+    },260);
+  });
+  input.addEventListener('blur',()=>setTimeout(()=>list.style.display='none',160));
+})();
+
 // ADDRESS AUTOCOMPLETE
 (function initAC(){
   const input=document.getElementById('f-addr');const list=document.getElementById('ac-list');
@@ -1447,7 +1554,13 @@ loadData().catch(err=>{document.getElementById('main').innerHTML=`<div style="te
     if(res.status===401||res.status===403)document.getElementById('token-warn').style.display='';
   }catch{}
 })();
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('add-overlay');closeModal('settings-overlay');closeModal('wish-overlay');closeModal('img-overlay');}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('add-overlay');closeModal('settings-overlay');closeModal('wish-overlay');closeModal('img-overlay');hidePicksPopup();}});
+document.addEventListener('click',e=>{const p=document.getElementById('picks-popup');if(p&&p.style.display!=='none'&&!p.contains(e.target))hidePicksPopup();});
 </script>
+<!-- PICKS POPUP MENU -->
+<div id="picks-popup" style="display:none" class="picks-popup">
+  <button class="picks-popup-btn" onclick="picksPopupItinerary()">↗ Add to Itinerary</button>
+  <button class="picks-popup-btn" onclick="picksPopupWishlist()">♡ Save to Wishlist</button>
+</div>
 </body>
 </html>
