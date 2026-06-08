@@ -171,17 +171,7 @@
           ]
         }
       ],
-      "wishlist": [
-        {
-          "id": "wish-1780943396542",
-          "name": "Chillon Castle",
-          "address": "Chillon Castle, Lausanne",
-          "appleMaps": "https://maps.apple.com/?q=Chillon%20Castle%20Lausanne",
-          "googleMaps": "https://www.google.com/maps/search/Chillon%20Castle%20Lausanne",
-          "website": null,
-          "notes": "Medieval castle on the lake (Montreux)"
-        }
-      ]
+      "wishlist": []
     },
     {
       "id": "nice",
