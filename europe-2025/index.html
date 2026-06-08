@@ -177,21 +177,21 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .card-link.cta:hover { background:var(--sand); border-color:var(--sand); }
 
 /* FLIGHT CARD */
-.card.flight { grid-column:1/-1; cursor:default; background:var(--ink); border-color:var(--ink); }
+.card.flight { grid-column:1/-1; cursor:default; background:#F0DDD4; border-color:#D4A99A; }
 .card.flight:hover { transform:none; box-shadow:var(--sh-sm); }
 .card.flight .card-inner { display:flex; align-items:center; padding:14px 20px; gap:20px; }
 .flight-route-h { display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.flight-iata-h { font-family:'Playfair Display',serif; font-size:22px; font-weight:400; color:#fff; letter-spacing:.02em; line-height:1; }
+.flight-iata-h { font-family:'Playfair Display',serif; font-size:22px; font-weight:400; color:var(--ink); letter-spacing:.02em; line-height:1; }
 .flight-arrow-h { display:flex; align-items:center; }
-.flight-arrow-h::before,.flight-arrow-h::after { content:''; display:block; width:18px; height:1px; background:rgba(255,255,255,.25); }
-.flight-plane-h { font-size:12px; margin:0 4px; }
-.flight-divider-h { width:1px; height:28px; background:rgba(255,255,255,.12); flex-shrink:0; }
+.flight-arrow-h::before,.flight-arrow-h::after { content:''; display:block; width:18px; height:1px; background:rgba(0,0,0,.18); }
+.flight-plane-h { font-size:12px; margin:0 4px; color:#B5896F; }
+.flight-divider-h { width:1px; height:28px; background:rgba(0,0,0,.1); flex-shrink:0; }
 .flight-detail-h { display:flex; flex-direction:column; gap:1px; }
-.flight-detail-label { font-size:8px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.35); }
-.flight-detail-val { font-size:12px; font-weight:400; color:rgba(255,255,255,.8); }
+.flight-detail-label { font-size:8px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:#B5896F; }
+.flight-detail-val { font-size:12px; font-weight:400; color:var(--ink); }
 .flight-spacer { flex:1; }
-.flight-cat-h { font-size:8px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.3); flex-shrink:0; }
-.card.flight .card-action-btn { background:rgba(255,255,255,.12); }
+.flight-cat-h { font-size:8px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:#B5896F; flex-shrink:0; }
+.card.flight .card-action-btn { background:rgba(0,0,0,.08); }
 
 /* PLACEHOLDER */
 .card.placeholder { background:transparent; border-style:dashed; box-shadow:none; cursor:pointer; min-height:88px; display:flex; align-items:center; justify-content:center; padding:24px; overflow:hidden; }
