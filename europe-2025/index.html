@@ -816,14 +816,21 @@ const CHIP_OSM={
 };
 const OP_EMOJI={wine_bar:'🍷',winery:'🍷',wine:'🍷',restaurant:'🍽',cafe:'☕',bakery:'🥐',beach:'🏖',swimming_area:'🏊',bathing_place:'🏊',museum:'🏛',gallery:'🎨',arts_centre:'🎨',park:'🌿',garden:'🌿',viewpoint:'👁',clothes:'🛍',shoes:'🛍',boutique:'🛍',jewelry:'💎',fashion:'🛍',marketplace:'🛒',bar:'🍸',pub:'🍺',nightclub:'🎵',attraction:'✦',castle:'🏰',church:'⛪',cathedral:'⛪'};
 
-async function overpassQuery(tags,lat,lon,limit=24){
-  const r=160000; // 100 miles in meters
+async function overpassQuery(tags,lat,lon,limit=20){
+  // 50km covers all local areas well (Lac Léman, full Côte d'Azur) and is fast
+  // 160km was timing out — too much of France/Switzerland to scan
+  const r=50000;
   const parts=tags.flatMap(t=>[`node${t}(around:${r},${lat},${lon});`,`way${t}(around:${r},${lat},${lon});`]);
-  const q=`[out:json][timeout:20];\n(\n  ${parts.join('\n  ')}\n);\nout center ${limit};`;
-  const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q)});
-  if(!res.ok)throw new Error('Overpass error');
-  const d=await res.json();
-  return(d.elements||[]).filter(el=>el.tags?.name);
+  const q=`[out:json][timeout:12][maxsize:1000000];\n(\n  ${parts.join('\n  ')}\n);\nout center ${limit};`;
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),11000);
+  try{
+    const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q),signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!res.ok)throw new Error('Overpass '+res.status);
+    const d=await res.json();
+    return(d.elements||[]).filter(el=>el.tags?.name);
+  }catch(err){clearTimeout(tid);throw err;}
 }
 function fmtOverpass(el){
   const name=el.tags.name;
@@ -893,7 +900,7 @@ async function searchPicks(destId){
       row.querySelector('.picks-search-item-main').addEventListener('click',()=>openPickToDay(destId,{name:item.name,address:item.addr||item.name,googleMaps:item.mapsUrl}));
       results.appendChild(row);
     });
-  }catch(err){results.innerHTML='<div class="picks-search-status">Search failed — try again</div>';}
+  }catch(err){results.innerHTML=`<div class="picks-search-status">${err.name==='AbortError'?'Took too long — tap again to retry':'Search failed — try again'}</div>`;}
 }
 function setupPicksSearch(destId){
   const input=document.getElementById(`picks-search-${destId}`);if(!input)return;
