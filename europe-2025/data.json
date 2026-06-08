@@ -154,7 +154,17 @@
           ]
         }
       ],
-      "wishlist": []
+      "wishlist": [
+        {
+          "id": "wish-1780940877299",
+          "name": "Eat Me",
+          "address": "Eat Me, 3 Rue Pépinet, Lausanne, Switzerland",
+          "appleMaps": "https://maps.apple.com/?address=Eat%20Me%2C%203%20Rue%20P%C3%A9pinet%2C%20Lausanne%2C%20Switzerland&q=Eat%20Me",
+          "googleMaps": "https://www.google.com/maps/search/Eat%20Me%2C%203%20Rue%20P%C3%A9pinet%2C%20Lausanne%2C%20Switzerland",
+          "website": null,
+          "notes": null
+        }
+      ]
     },
     {
       "id": "nice",
