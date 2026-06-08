@@ -15,6 +15,7 @@
   --red: #BF3B3B;
   --sh-sm: 0 1px 4px rgba(0,0,0,.06); --sh-md: 0 4px 20px rgba(0,0,0,.10);
   --sh-lg: 0 12px 48px rgba(0,0,0,.18);
+  --sidebar-w: 240px;
 }
 html,body { min-height:100%; background:var(--cream); color:var(--ink); }
 body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height:1.5; }
@@ -37,24 +38,110 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .hero-meta-item { color:rgba(255,255,255,.85); font-size:13px; font-weight:300; }
 .hero-meta-label { display:block; font-size:9px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.45); margin-bottom:3px; }
 
-/* ─── ACCOM STRIP ─── */
-.accom { background:var(--sand-light); border-bottom:1px solid rgba(196,168,130,.28); padding:16px 64px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
-.accom-label { font-size:9px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--sand); flex-shrink:0; }
-.accom-addr { font-family:'Playfair Display',serif; font-style:italic; font-size:14px; color:var(--ink); flex:1; }
-.accom-links { display:flex; gap:8px; flex-shrink:0; }
-.map-btn { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:500; color:var(--ink-60); text-decoration:none; background:var(--white); border:1px solid var(--rule); padding:5px 12px; border-radius:99px; transition:all .15s; white-space:nowrap; }
-.map-btn:hover { border-color:var(--sand); color:var(--ink); }
-
 /* ─── DEST DIVIDER ─── */
 .dest-div { text-align:center; position:relative; padding:36px 0; }
 .dest-div::before { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:var(--rule); }
 .dest-div-label { position:relative; display:inline-block; background:var(--cream); padding:0 28px; font-size:9px; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:var(--ink-30); }
 
-/* ─── WRAP ─── */
-.wrap { max-width:1400px; margin:0 auto; padding:0 64px; }
+/* ─── WRAP + TWO-COLUMN LAYOUT ─── */
+.wrap { max-width:1440px; margin:0 auto; padding:0 48px; }
+
+.dest-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  gap: 40px;
+  align-items: start;
+  transition: grid-template-columns 0.35s cubic-bezier(.4,0,.2,1);
+}
+.dest-layout.sidebar-hidden {
+  grid-template-columns: 0px 1fr;
+}
+
+/* ─── ACCOM SIDEBAR ─── */
+.accom-sidebar {
+  position: sticky;
+  top: 58px;
+  max-height: calc(100vh - 70px);
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+  padding-top: 44px;
+}
+.dest-layout.sidebar-hidden .accom-sidebar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.accom-card {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: var(--sh-sm);
+  overflow: hidden;
+}
+.accom-card-top {
+  padding: 16px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.accom-section-tag {
+  font-size: 8px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--sand);
+}
+.accom-hide-btn {
+  font-size: 10px; font-weight: 500; color: var(--ink-30);
+  background: none; border: none; cursor: pointer; padding: 3px 7px;
+  border-radius: 3px; transition: all .15s; white-space: nowrap;
+}
+.accom-hide-btn:hover { color: var(--ink); background: var(--cream); }
+
+.accom-address-block { padding: 0 16px 16px; border-bottom: 1px solid var(--rule); }
+.accom-address-text {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: 14px; color: var(--ink); line-height: 1.4; margin-bottom: 12px;
+}
+.accom-map-links { display: flex; flex-direction: column; gap: 7px; }
+.map-btn {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 500;
+  color: var(--ink-60); text-decoration: none; background: var(--cream);
+  border: 1px solid var(--rule); padding: 6px 12px; border-radius: 99px;
+  transition: all .15s; white-space: nowrap;
+}
+.map-btn:hover { border-color: var(--sand); color: var(--ink); }
+
+.accom-notes-block { padding: 14px 16px 16px; }
+.accom-notes-label {
+  font-size: 8px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--ink-30); margin-bottom: 8px;
+}
+.accom-notes-area {
+  width: 100%; min-height: 160px;
+  border: 1px solid var(--rule); border-radius: 3px;
+  padding: 10px 12px; font-size: 12px; font-family: 'Inter', sans-serif;
+  color: var(--ink); background: var(--cream); outline: none;
+  resize: none; line-height: 1.7; transition: border-color .15s;
+}
+.accom-notes-area:focus { border-color: var(--sand); }
+.accom-notes-hint { font-size: 10px; color: var(--ink-30); margin-top: 6px; font-style: italic; line-height: 1.5; }
+
+/* ─── SIDEBAR REVEAL BUTTON ─── */
+.sidebar-reveal {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px; font-weight: 500; color: var(--ink-30);
+  background: none; border: 1px solid var(--rule); border-radius: 99px;
+  padding: 5px 14px; cursor: pointer; margin-bottom: 24px;
+  transition: all .15s;
+}
+.sidebar-reveal:hover { border-color: var(--sand); color: var(--ink); }
+.dest-layout.sidebar-hidden .sidebar-reveal { display: flex; }
+
+/* ─── DAYS CONTENT ─── */
+.days-content { min-width: 0; }
 
 /* ─── DAY ─── */
-.day { padding:44px 0 12px; }
+.day { padding: 44px 0 12px; }
 .day-head { display:flex; align-items:baseline; gap:16px; padding-bottom:18px; margin-bottom:24px; border-bottom:1px solid var(--rule); }
 .day-num { font-family:'Playfair Display',serif; font-size:56px; font-weight:400; color:var(--rule); line-height:1; letter-spacing:-.04em; flex-shrink:0; }
 .day-meta { display:flex; flex-direction:column; gap:2px; }
@@ -70,7 +157,7 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .join-sub { font-size:11px; font-weight:300; color:rgba(255,255,255,.5); }
 
 /* ─── GRID ─── */
-.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
 
 /* ─── CARD (compact) ─── */
 .card { background:var(--white); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--sh-sm); overflow:visible; position:relative; cursor:grab; user-select:none; transition:box-shadow .2s,transform .2s,border-color .15s; }
@@ -86,7 +173,7 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .card-action-btn:hover { background:var(--sand); }
 .card-action-btn.del:hover { background:var(--red); }
 
-/* ─── CARD CONTENT (compact) ─── */
+/* ─── CARD CONTENT ─── */
 .card-img { width:100%; height:140px; object-fit:cover; display:block; background:var(--rule); }
 .card-img-ph { width:100%; height:140px; background:linear-gradient(135deg,var(--sand-light) 0%,var(--rule) 100%); display:flex; align-items:center; justify-content:center; font-size:28px; }
 .card-body { padding:13px 15px 15px; }
@@ -106,79 +193,20 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .card-link.cta:hover { background:var(--sand); border-color:var(--sand); }
 
 /* ─── FLIGHT CARD — horizontal full-width strip ─── */
-.card.flight {
-  grid-column: 1 / -1;
-  cursor:default;
-  background: var(--ink);
-  border-color: var(--ink);
-}
+.card.flight { grid-column:1/-1; cursor:default; background:var(--ink); border-color:var(--ink); }
 .card.flight:hover { transform:none; box-shadow:var(--sh-sm); }
-.card.flight .card-inner {
-  display: flex;
-  align-items: center;
-  padding: 14px 20px;
-  gap: 20px;
-}
-.flight-route-h {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-.flight-iata-h {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-weight: 400;
-  color: #fff;
-  letter-spacing: .02em;
-  line-height: 1;
-}
-.flight-arrow-h {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  color: rgba(255,255,255,.3);
-}
-.flight-arrow-h::before, .flight-arrow-h::after {
-  content: '';
-  display: block;
-  width: 20px;
-  height: 1px;
-  background: rgba(255,255,255,.25);
-}
-.flight-plane-h { font-size: 13px; margin: 0 5px; }
-.flight-divider-h {
-  width: 1px;
-  height: 28px;
-  background: rgba(255,255,255,.12);
-  flex-shrink: 0;
-}
-.flight-detail-h {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.flight-detail-label {
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.35);
-}
-.flight-detail-val {
-  font-size: 12px;
-  font-weight: 400;
-  color: rgba(255,255,255,.8);
-}
-.flight-spacer { flex: 1; }
-.flight-cat-h {
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.3);
-  flex-shrink: 0;
-}
+.card.flight .card-inner { display:flex; align-items:center; padding:14px 20px; gap:20px; }
+.flight-route-h { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.flight-iata-h { font-family:'Playfair Display',serif; font-size:22px; font-weight:400; color:#fff; letter-spacing:.02em; line-height:1; }
+.flight-arrow-h { display:flex; align-items:center; }
+.flight-arrow-h::before,.flight-arrow-h::after { content:''; display:block; width:18px; height:1px; background:rgba(255,255,255,.25); }
+.flight-plane-h { font-size:12px; margin:0 4px; }
+.flight-divider-h { width:1px; height:28px; background:rgba(255,255,255,.12); flex-shrink:0; }
+.flight-detail-h { display:flex; flex-direction:column; gap:1px; }
+.flight-detail-label { font-size:8px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+.flight-detail-val { font-size:12px; font-weight:400; color:rgba(255,255,255,.8); }
+.flight-spacer { flex:1; }
+.flight-cat-h { font-size:8px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.3); flex-shrink:0; }
 .card.flight .card-action-btn { background:rgba(255,255,255,.12); }
 
 /* ─── PLACEHOLDER ─── */
@@ -237,8 +265,23 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 .toast.err { background:var(--red); }
 
 /* ─── RESPONSIVE ─── */
-@media (max-width:1024px) { .hero-city { font-size:60px; } .hero-content,.accom { padding-left:36px; padding-right:36px; } .wrap { padding:0 36px; } .nav { padding:0 36px; } }
-@media (max-width:700px) { .hero { height:360px; } .hero-city { font-size:42px; } .hero-content { padding:28px 20px; } .accom { padding:14px 20px; flex-direction:column; align-items:flex-start; gap:10px; } .wrap { padding:0 16px; } .nav { padding:0 16px; } .grid { grid-template-columns:1fr 1fr; gap:10px; } .day-num { font-size:44px; } .form-row.cols-2 { grid-template-columns:1fr; } .modal-head { padding:16px 16px 14px; } .modal-body { padding:16px; } .add-btn { bottom:16px; right:16px; } .toast { right:16px; bottom:76px; } .card.flight .card-inner { flex-wrap:wrap; gap:12px; } }
+@media (max-width:1100px) {
+  .dest-layout { grid-template-columns: 200px 1fr; gap:24px; }
+  :root { --sidebar-w: 200px; }
+}
+@media (max-width:860px) {
+  .dest-layout, .dest-layout.sidebar-hidden { grid-template-columns: 1fr; }
+  .accom-sidebar { position:static; max-height:none; padding-top:24px; }
+  .dest-layout.sidebar-hidden .accom-sidebar { display:none; }
+  .sidebar-reveal { margin-bottom:16px; }
+  .hero { height:360px; } .hero-city { font-size:42px; } .hero-content { padding:28px 20px; }
+  .wrap { padding:0 20px; } .nav { padding:0 20px; }
+  .grid { grid-template-columns:1fr 1fr; gap:10px; }
+  .day-num { font-size:44px; } .form-row.cols-2 { grid-template-columns:1fr; }
+  .modal-head { padding:16px 16px 14px; } .modal-body { padding:16px; }
+  .add-btn { bottom:16px; right:16px; } .toast { right:16px; bottom:76px; }
+}
+@media (max-width:500px) { .grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -360,7 +403,7 @@ async function ghGet() {
   if(!res.ok) throw new Error(`GitHub ${res.status}`);
   return res.json();
 }
-async function ghPut(newData, message) {
+async function ghPut(newData,message) {
   const token=getToken();
   if(!token) throw new Error('No token — click ⚙ to add your GitHub token');
   const file=await ghGet();
@@ -370,33 +413,41 @@ async function ghPut(newData, message) {
 }
 
 // ── AUTO PHOTO (Wikipedia) ────────────────────────────────────────────────
-const photoCache = {};
+const photoCache={};
 async function fetchWikiPhoto(query) {
-  if (photoCache[query] !== undefined) return photoCache[query];
+  if(photoCache[query]!==undefined) return photoCache[query];
   try {
-    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(query)}&prop=pageimages&format=json&pithumbsize=800&origin=*`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const page = Object.values(data.query?.pages || {})[0];
-    const src = page?.thumbnail?.source || null;
-    photoCache[query] = src;
-    return src;
-  } catch { photoCache[query] = null; return null; }
+    const url=`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(query)}&prop=pageimages&format=json&pithumbsize=800&origin=*`;
+    const res=await fetch(url);
+    const data=await res.json();
+    const page=Object.values(data.query?.pages||{})[0];
+    const src=page?.thumbnail?.source||null;
+    photoCache[query]=src; return src;
+  } catch { photoCache[query]=null; return null; }
+}
+async function autoPhoto(inner,event) {
+  const ph=inner.querySelector('.card-img-ph');
+  if(!ph||event.photo) return;
+  const query=event.name+(event.address?' '+event.address.split(',').pop().trim():'');
+  const src=await fetchWikiPhoto(query);
+  if(src&&ph.parentNode){const img=document.createElement('img');img.className='card-img';img.src=src;img.alt=event.name;img.onerror=()=>{};ph.replaceWith(img);}
 }
 
-async function autoPhoto(inner, event) {
-  const ph = inner.querySelector('.card-img-ph');
-  if (!ph || event.photo) return;
-  const query = event.name + (event.address ? ' ' + event.address.split(',').pop().trim() : '');
-  const src = await fetchWikiPhoto(query);
-  if (src && ph.parentNode) {
-    const img = document.createElement('img');
-    img.className = 'card-img';
-    img.src = src;
-    img.alt = event.name;
-    img.onerror = () => {};
-    ph.replaceWith(img);
-  }
+// ── SIDEBAR ───────────────────────────────────────────────────────────────
+function toggleSidebar(destId) {
+  const layout=document.getElementById(`layout-${destId}`);
+  const reveal=document.getElementById(`reveal-${destId}`);
+  const isHidden=layout.classList.toggle('sidebar-hidden');
+  reveal.style.display=isHidden?'flex':'none';
+  try{localStorage.setItem(`sidebar-${destId}`,isHidden?'1':'0');}catch(_){}
+}
+
+function saveAccessNotes(destId,value) {
+  try{localStorage.setItem(`access-${destId}`,value);}catch(_){}
+}
+
+function loadAccessNotes(destId) {
+  try{return localStorage.getItem(`access-${destId}`)||'';}catch(_){return '';}
 }
 
 // ── DATA ──────────────────────────────────────────────────────────────────
@@ -419,14 +470,63 @@ function render(data) {
 
 function renderDest(dest) {
   const frag=document.createDocumentFragment();
+
+  // Hero
   const hero=el('section','hero');
   hero.innerHTML=`<img class="hero-img" src="${esc(dest.heroImage)}" alt="${esc(dest.heroAlt)}" onerror="this.style.display='none'"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-eyebrow">${esc(dest.eyebrow)}</div><div class="hero-city">${esc(dest.city)}</div><div class="hero-meta"><div class="hero-meta-item"><span class="hero-meta-label">Arrive</span>${esc(dest.arriveLabel)}</div><div class="hero-meta-item"><span class="hero-meta-label">Depart</span>${esc(dest.departLabel)}</div><div class="hero-meta-item"><span class="hero-meta-label">With</span>${esc(dest.travelersLabel)}</div>${dest.joinDate?`<div class="hero-meta-item"><span class="hero-meta-label">Olivia & Anna join</span>${esc(dest.joinTravelersLabel)}</div>`:''}</div></div>`;
   frag.appendChild(hero);
-  const accom=el('div','accom');
-  accom.innerHTML=`<span class="accom-label">Home Base</span><span class="accom-addr">${esc(dest.accommodation.address)}</span><div class="accom-links"><a class="map-btn" href="${esc(dest.accommodation.appleMaps)}" target="_blank">${PIN} Apple Maps</a><a class="map-btn" href="${esc(dest.accommodation.googleMaps)}" target="_blank">${PIN} Google Maps</a></div>`;
-  frag.appendChild(accom);
+
+  // Two-column layout
   const wrap=el('div','wrap');
-  dest.days.forEach(day=>wrap.appendChild(renderDay(day)));
+  const layout=el('div','dest-layout');
+  layout.id=`layout-${dest.id}`;
+
+  // Restore sidebar hidden state
+  const wasHidden=localStorage.getItem(`sidebar-${dest.id}`)==='1';
+  if(wasHidden) layout.classList.add('sidebar-hidden');
+
+  // ── LEFT: Accommodation sidebar
+  const sidebar=el('div','accom-sidebar');
+  const card=el('div','accom-card');
+
+  // Access notes (stored locally, private)
+  const savedNotes=loadAccessNotes(dest.id);
+
+  card.innerHTML=`
+    <div class="accom-card-top">
+      <div class="accom-section-tag">Home Base</div>
+      <button class="accom-hide-btn" onclick="toggleSidebar('${dest.id}')">Hide ←</button>
+    </div>
+    <div class="accom-address-block">
+      <div class="accom-address-text">${esc(dest.accommodation.address)}</div>
+      <div class="accom-map-links">
+        <a class="map-btn" href="${esc(dest.accommodation.appleMaps)}" target="_blank">${PIN} Apple Maps</a>
+        <a class="map-btn" href="${esc(dest.accommodation.googleMaps)}" target="_blank">${PIN} Google Maps</a>
+      </div>
+    </div>
+    <div class="accom-notes-block">
+      <div class="accom-notes-label">Access Info</div>
+      <textarea class="accom-notes-area" placeholder="Door code, WiFi password, check-in time, host contact, building notes…" oninput="saveAccessNotes('${dest.id}',this.value)">${esc(savedNotes)}</textarea>
+      <div class="accom-notes-hint">Stays on this device only — not saved to GitHub.</div>
+    </div>`;
+  sidebar.appendChild(card);
+  layout.appendChild(sidebar);
+
+  // ── RIGHT: Days content
+  const daysContent=el('div','days-content');
+
+  // Reveal button (shown when sidebar is hidden)
+  const reveal=el('button','sidebar-reveal');
+  reveal.id=`reveal-${dest.id}`;
+  reveal.style.display=wasHidden?'flex':'none';
+  reveal.innerHTML=`🏠 Show accommodation`;
+  reveal.onclick=()=>toggleSidebar(dest.id);
+  daysContent.appendChild(reveal);
+
+  dest.days.forEach(day=>daysContent.appendChild(renderDay(day)));
+  layout.appendChild(daysContent);
+
+  wrap.appendChild(layout);
   frag.appendChild(wrap);
   return frag;
 }
@@ -445,33 +545,19 @@ function renderDay(day) {
   return dayEl;
 }
 
-function renderEvent(event, dayId) {
+function renderEvent(event,dayId) {
   const card=el('div','card');
   const actions=el('div','card-actions');
   const editBtn=el('button','card-action-btn');editBtn.title='Edit';editBtn.innerHTML='✏';editBtn.onclick=(e)=>{e.stopPropagation();openEditModal(dayId,event);};
   const delBtn=el('button','card-action-btn del');delBtn.title='Delete';delBtn.innerHTML='×';delBtn.onclick=(e)=>{e.stopPropagation();confirmDelete(dayId,event.id,event.name||event.flightNumber||'this event');};
-  actions.appendChild(editBtn);actions.appendChild(delBtn);
-  card.appendChild(actions);
-
+  actions.appendChild(editBtn);actions.appendChild(delBtn);card.appendChild(actions);
   const inner=el('div','card-inner');
 
   if(event.type==='flight'){
     card.classList.add('flight');
-    inner.innerHTML=`
-      <div class="flight-route-h">
-        <span class="flight-iata-h">${esc(event.fromIATA)}</span>
-        <div class="flight-arrow-h"><span class="flight-plane-h">✈</span></div>
-        <span class="flight-iata-h">${esc(event.toIATA)}</span>
-      </div>
-      <div class="flight-divider-h"></div>
-      ${event.flightNumber?`<div class="flight-detail-h"><div class="flight-detail-label">Flight</div><div class="flight-detail-val">${esc(event.flightNumber)}</div></div><div class="flight-divider-h"></div>`:''}
-      ${event.time?`<div class="flight-detail-h"><div class="flight-detail-label">Time</div><div class="flight-detail-val">${esc(event.time)}</div></div><div class="flight-divider-h"></div>`:''}
-      <div class="flight-detail-h"><div class="flight-detail-label">Route</div><div class="flight-detail-val">${esc(event.fromCity)} → ${esc(event.toCity)}</div></div>
-      ${event.confirmationNumber?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Conf</div><div class="flight-detail-val">${esc(event.confirmationNumber)}</div></div>`:''}
-      <div class="flight-spacer"></div>
-      <div class="flight-cat-h">${esc(event.category)}</div>`;
+    inner.innerHTML=`<div class="flight-route-h"><span class="flight-iata-h">${esc(event.fromIATA)}</span><div class="flight-arrow-h"><span class="flight-plane-h">✈</span></div><span class="flight-iata-h">${esc(event.toIATA)}</span></div><div class="flight-divider-h"></div>${event.flightNumber?`<div class="flight-detail-h"><div class="flight-detail-label">Flight</div><div class="flight-detail-val">${esc(event.flightNumber)}</div></div><div class="flight-divider-h"></div>`:''} ${event.time?`<div class="flight-detail-h"><div class="flight-detail-label">Time</div><div class="flight-detail-val">${esc(event.time)}</div></div><div class="flight-divider-h"></div>`:''}<div class="flight-detail-h"><div class="flight-detail-label">Route</div><div class="flight-detail-val">${esc(event.fromCity)} → ${esc(event.toCity)}</div></div>${event.confirmationNumber?`<div class="flight-divider-h"></div><div class="flight-detail-h"><div class="flight-detail-label">Conf</div><div class="flight-detail-val">${esc(event.confirmationNumber)}</div></div>`:''}<div class="flight-spacer"></div><div class="flight-cat-h">${esc(event.category)}</div>`;
   } else {
-    card.draggable=true; card.dataset.id=event.id;
+    card.draggable=true;card.dataset.id=event.id;
     const photo=event.photo?`<img class="card-img" src="${esc(event.photo)}" alt="${esc(event.name)}" onerror="this.outerHTML='<div class=\\'card-img-ph\\'>${catEmoji(event.type)}</div>'">`:`<div class="card-img-ph">${catEmoji(event.type)}</div>`;
     let links='';
     if(event.appleMaps) links+=`<a class="card-link cta" href="${esc(event.appleMaps)}" target="_blank">${PIN} Apple Maps</a>`;
@@ -479,35 +565,27 @@ function renderEvent(event, dayId) {
     if(event.website) links+=`<a class="card-link" href="${esc(event.website)}" target="_blank">↗ Website</a>`;
     if(event.menu) links+=`<a class="card-link" href="${esc(event.menu)}" target="_blank">📋 Menu</a>`;
     inner.innerHTML=`${photo}<div class="card-body"><div class="card-cat">${esc(event.category)}</div><div class="card-name">${esc(event.name)}</div>${event.subtitle?`<div class="card-sub">${esc(event.subtitle)}</div>`:''} ${event.timeLabel||event.time?`<div class="card-time">✦ ${esc(event.timeLabel||event.time)}</div>`:''} ${event.address?`<div class="card-hr"></div><div class="card-addr"><span class="card-addr-icon">📍</span><span class="card-addr-text">${esc(event.address)}</span></div>`:''} ${links?`<div class="card-links">${links}</div>`:''} ${event.confirmationNumber?`<div class="card-conf">Conf # ${esc(event.confirmationNumber)}</div>`:''}</div>`;
-
-    // Auto-load photo from Wikipedia if no photo set
-    if (!event.photo) setTimeout(() => autoPhoto(inner, event), 100);
+    if(!event.photo) setTimeout(()=>autoPhoto(inner,event),100);
   }
   card.appendChild(inner);
   return card;
 }
 
-// ── DELETE ────────────────────────────────────────────────────────────────
+// ── DELETE ─────────────────────────────────────────────────────────────────
 function confirmDelete(dayId,eventId,name){if(!confirm(`Remove "${name}"?`))return;deleteEvent(dayId,eventId,name);}
 async function deleteEvent(dayId,eventId,name){
-  try{
-    const data=JSON.parse(JSON.stringify(S.data));
-    for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events=day.events.filter(e=>e.id!==eventId);break;}
-    await ghPut(data,`Remove ${name}`);S.data=data;render(data);showToast('Removed ✓');
-  }catch(err){showToast(err.message,true);}
+  try{const data=JSON.parse(JSON.stringify(S.data));for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events=day.events.filter(e=>e.id!==eventId);break;}await ghPut(data,`Remove ${name}`);S.data=data;render(data);showToast('Removed ✓');}
+  catch(err){showToast(err.message,true);}
 }
 
-// ── ADD / EDIT ────────────────────────────────────────────────────────────
+// ── ADD / EDIT ─────────────────────────────────────────────────────────────
 function openAddModal(){S.editMode=null;document.getElementById('modal-title').textContent='Add to Itinerary';document.getElementById('f-submit').textContent='Add to Itinerary';document.getElementById('add-form').reset();onCatChange();populateDaySelect();document.getElementById('add-overlay').classList.add('open');}
 
 function openEditModal(dayId,event){
   S.editMode={dayId,eventId:event.id};
-  document.getElementById('modal-title').textContent='Edit Event';
-  document.getElementById('f-submit').textContent='Save Changes';
+  document.getElementById('modal-title').textContent='Edit Event';document.getElementById('f-submit').textContent='Save Changes';
   populateDaySelect(dayId);
-  const isFlight=event.type==='flight';
-  document.getElementById('f-cat').value=isFlight?'flight':event.type||'other';
-  onCatChange();
+  const isFlight=event.type==='flight';document.getElementById('f-cat').value=isFlight?'flight':event.type||'other';onCatChange();
   if(isFlight){document.getElementById('f-from').value=event.fromIATA||'';document.getElementById('f-to').value=event.toIATA||'';document.getElementById('f-fnum').value=event.flightNumber||'';document.getElementById('f-ftime').value=event.time||'';document.getElementById('f-fconf').value=event.confirmationNumber||'';document.getElementById('f-ftravelers').value='';document.getElementById('f-fnotes').value=event.notes||'';}
   else{document.getElementById('f-name').value=event.name||'';document.getElementById('f-time').value=event.timeLabel||event.time||'';document.getElementById('f-conf').value=event.confirmationNumber||'';document.getElementById('f-addr').value=event.address||'';document.getElementById('f-web').value=event.website||'';document.getElementById('f-menu').value=event.menu||'';document.getElementById('f-photo').value=event.photo||'';document.getElementById('f-notes').value=event.subtitle||'';}
   document.getElementById('add-overlay').classList.add('open');
@@ -516,18 +594,12 @@ function openEditModal(dayId,event){
 function populateDaySelect(selectedId){
   const sel=document.getElementById('f-day');sel.innerHTML='<option value="">Select a day…</option>';
   if(!S.data)return;
-  S.data.destinations.forEach(dest=>{
-    const og=document.createElement('optgroup');og.label=dest.city;
-    dest.days.forEach(day=>{const o=document.createElement('option');o.value=day.id;o.textContent=day.label;if(selectedId&&day.id===selectedId)o.selected=true;og.appendChild(o);});
-    sel.appendChild(og);
-  });
+  S.data.destinations.forEach(dest=>{const og=document.createElement('optgroup');og.label=dest.city;dest.days.forEach(day=>{const o=document.createElement('option');o.value=day.id;o.textContent=day.label;if(selectedId&&day.id===selectedId)o.selected=true;og.appendChild(o);});sel.appendChild(og);});
 }
 
 function onCatChange(){
   const cat=document.getElementById('f-cat').value;const isFlight=cat==='flight';
-  document.getElementById('f-standard').classList.toggle('form-hidden',isFlight);
-  document.getElementById('f-flight').classList.toggle('form-hidden',!isFlight);
-  document.getElementById('f-menu-wrap').classList.toggle('form-hidden',cat!=='restaurant');
+  document.getElementById('f-standard').classList.toggle('form-hidden',isFlight);document.getElementById('f-flight').classList.toggle('form-hidden',!isFlight);document.getElementById('f-menu-wrap').classList.toggle('form-hidden',cat!=='restaurant');
   document.getElementById('f-from').required=isFlight;document.getElementById('f-to').required=isFlight;document.getElementById('f-name').required=!isFlight;
 }
 
@@ -538,39 +610,23 @@ async function handleSubmit(e){
   const btn=document.getElementById('f-submit');btn.disabled=true;btn.textContent='Saving…';
   try{
     const eventId=S.editMode?S.editMode.eventId:'ev-'+Date.now();let event;
-    if(cat==='flight'){
-      const travelers=document.getElementById('f-ftravelers').value.trim();
-      event={id:eventId,type:'flight',category:'Flight'+(travelers?' · '+travelers:''),fromIATA:document.getElementById('f-from').value.trim().toUpperCase(),fromCity:document.getElementById('f-from').value.trim().toUpperCase(),toIATA:document.getElementById('f-to').value.trim().toUpperCase(),toCity:document.getElementById('f-to').value.trim().toUpperCase(),time:document.getElementById('f-ftime').value.trim()||null,flightNumber:document.getElementById('f-fnum').value.trim()||null,confirmationNumber:document.getElementById('f-fconf').value.trim()||null,notes:document.getElementById('f-fnotes').value.trim()||null};
-    }else{
-      const label={restaurant:'Restaurant',activity:'Activity',accommodation:'Accommodation',highlight:'Highlight',other:''}[cat]||'';
-      const name=document.getElementById('f-name').value.trim();const addr=document.getElementById('f-addr').value.trim();
-      event={id:eventId,type:cat,category:label,name,subtitle:document.getElementById('f-notes').value.trim()||null,time:document.getElementById('f-time').value.trim()||null,timeLabel:null,address:addr||null,appleMaps:addr?`https://maps.apple.com/?address=${encodeURIComponent(addr)}&q=${encodeURIComponent(name)}`:null,googleMaps:addr?`https://www.google.com/maps/search/${encodeURIComponent(addr)}`:null,website:document.getElementById('f-web').value.trim()||null,menu:document.getElementById('f-menu').value.trim()||null,photo:document.getElementById('f-photo').value.trim()||null,confirmationNumber:document.getElementById('f-conf').value.trim()||null,notes:null};
-    }
+    if(cat==='flight'){const travelers=document.getElementById('f-ftravelers').value.trim();event={id:eventId,type:'flight',category:'Flight'+(travelers?' · '+travelers:''),fromIATA:document.getElementById('f-from').value.trim().toUpperCase(),fromCity:document.getElementById('f-from').value.trim().toUpperCase(),toIATA:document.getElementById('f-to').value.trim().toUpperCase(),toCity:document.getElementById('f-to').value.trim().toUpperCase(),time:document.getElementById('f-ftime').value.trim()||null,flightNumber:document.getElementById('f-fnum').value.trim()||null,confirmationNumber:document.getElementById('f-fconf').value.trim()||null,notes:document.getElementById('f-fnotes').value.trim()||null};}
+    else{const label={restaurant:'Restaurant',activity:'Activity',accommodation:'Accommodation',highlight:'Highlight',other:''}[cat]||'';const name=document.getElementById('f-name').value.trim();const addr=document.getElementById('f-addr').value.trim();event={id:eventId,type:cat,category:label,name,subtitle:document.getElementById('f-notes').value.trim()||null,time:document.getElementById('f-time').value.trim()||null,timeLabel:null,address:addr||null,appleMaps:addr?`https://maps.apple.com/?address=${encodeURIComponent(addr)}&q=${encodeURIComponent(name)}`:null,googleMaps:addr?`https://www.google.com/maps/search/${encodeURIComponent(addr)}`:null,website:document.getElementById('f-web').value.trim()||null,menu:document.getElementById('f-menu').value.trim()||null,photo:document.getElementById('f-photo').value.trim()||null,confirmationNumber:document.getElementById('f-conf').value.trim()||null,notes:null};}
     const data=JSON.parse(JSON.stringify(S.data));
-    if(S.editMode){
-      const{dayId:origDay,eventId:origId}=S.editMode;
-      for(const dest of data.destinations)for(const day of dest.days)if(day.id===origDay){day.events=day.events.filter(e=>e.id!==origId);break;}
-      for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);break;}
-      await ghPut(data,`Update ${event.name||event.fromIATA+'→'+event.toIATA}`);showToast('Saved ✓');
-    }else{
-      let added=false;for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);added=true;break;}
-      if(!added)throw new Error('Day not found');
-      await ghPut(data,`Add ${event.name||event.fromIATA+'→'+event.toIATA} on ${dayId}`);showToast(`${event.name||'Flight'} added ✓`);
-    }
+    if(S.editMode){const{dayId:origDay,eventId:origId}=S.editMode;for(const dest of data.destinations)for(const day of dest.days)if(day.id===origDay){day.events=day.events.filter(e=>e.id!==origId);break;}for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);break;}await ghPut(data,`Update ${event.name||event.fromIATA+'→'+event.toIATA}`);showToast('Saved ✓');}
+    else{let added=false;for(const dest of data.destinations)for(const day of dest.days)if(day.id===dayId){day.events.push(event);added=true;break;}if(!added)throw new Error('Day not found');await ghPut(data,`Add ${event.name||event.fromIATA+'→'+event.toIATA} on ${dayId}`);showToast(`${event.name||'Flight'} added ✓`);}
     S.data=data;render(data);closeModal('add-overlay');S.editMode=null;
   }catch(err){showToast(err.message,true);}
   finally{btn.disabled=false;btn.textContent=S.editMode?'Save Changes':'Add to Itinerary';}
 }
 
-// ── MODAL HELPERS ─────────────────────────────────────────────────────────
+// ── MODAL / TOAST ──────────────────────────────────────────────────────────
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function handleOverlayClick(e,id){if(e.target.id===id)closeModal(id);}
-
-// ── TOAST ─────────────────────────────────────────────────────────────────
 let toastTimer;
 function showToast(msg,isErr=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(isErr?' err':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='toast',3200);}
 
-// ── DRAG & DROP ───────────────────────────────────────────────────────────
+// ── DRAG & DROP ────────────────────────────────────────────────────────────
 let dragSrc=null;
 function initDrag(){
   document.querySelectorAll('.card[draggable="true"]').forEach(c=>{
@@ -582,12 +638,12 @@ function initDrag(){
   });
 }
 
-// ── UTILS ─────────────────────────────────────────────────────────────────
+// ── UTILS ──────────────────────────────────────────────────────────────────
 function el(tag,cls){const e=document.createElement(tag);if(cls)e.className=cls;return e;}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function catEmoji(t){return{restaurant:'🍽',activity:'🌊',accommodation:'🏠',highlight:'✦',flight:'✈',other:'📌'}[t]||'📌';}
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+// ── INIT ───────────────────────────────────────────────────────────────────
 loadData().catch(err=>{document.getElementById('main').innerHTML=`<div style="text-align:center;padding:80px 40px;font-size:13px;color:#BF3B3B">Could not load: ${err.message}</div>`;});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('add-overlay');closeModal('settings-overlay');}});
 </script>
