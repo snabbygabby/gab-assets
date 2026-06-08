@@ -1074,7 +1074,7 @@ function togglePicksWhy(btn){
   if(!body)return;
   const isOpen=body.style.display!=='none';
   body.style.display=isOpen?'none':'';
-  btn.textContent=isOpen?'Why? ▾':'Why? ▴';
+  btn.textContent=isOpen?'Details ▾':'Details ▴';
 }
 function picksCatOpen(destId,catKey){const s=localStorage.getItem(`picks-cat-${destId}-${catKey}`);return s!==null?s==='1':true;}
 function togglePicksCat(destId,catKey){
@@ -1121,7 +1121,7 @@ function renderPicks(destId){
     }else{
       available.forEach(pick=>{
         const item=el('div','picks-item');item.dataset.id=pick.id;
-        const metaRow=(pick.instagram||pick.desc)?`<div class="picks-meta-row">${pick.instagram?`<a class="picks-ig" href="https://instagram.com/${pick.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()">${esc(pick.instagram)}</a>`:''} ${pick.desc?`<button class="picks-why-btn" onclick="event.stopPropagation();togglePicksWhy(this)">Why? ▾</button>`:''}</div>`:'';
+        const metaRow=(pick.instagram||pick.desc)?`<div class="picks-meta-row">${pick.instagram?`<a class="picks-ig" href="https://instagram.com/${pick.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()">${esc(pick.instagram)}</a>`:''} ${pick.desc?`<button class="picks-why-btn" onclick="event.stopPropagation();togglePicksWhy(this)">Details ▾</button>`:''}</div>`:'';
         const whyBody=pick.desc?`<div class="picks-why-body" style="display:none">${esc(pick.desc)}</div>`:'';
         item.innerHTML=`<div class="picks-item-main"><span class="picks-emoji">${pick.emoji}</span><div class="picks-info"><div class="picks-name-row"><span class="picks-name">${esc(pick.name)}</span>${pick.price?`<span class="picks-price">${esc(pick.price)}</span>`:''}</div><div class="picks-note">${esc(pick.note)}</div>${metaRow}${whyBody}</div><span class="picks-add-icon">+</span></div><button class="picks-x" onclick="dismissPick(event,'${destId}','${pick.id}')" title="Not interested">×</button>`;
         item.querySelector('.picks-item-main').addEventListener('click',()=>openPickToDay(destId,{name:pick.name,address:pick.name+', '+city,note:pick.note,googleMaps:`https://www.google.com/maps/search/${encodeURIComponent(pick.name+' '+city)}`}));
