@@ -171,17 +171,7 @@
           ]
         }
       ],
-      "wishlist": [
-        {
-          "id": "wish-1780943349289",
-          "name": "Escaliers du Marché",
-          "address": "Escaliers du Marché, Lausanne",
-          "appleMaps": "https://maps.apple.com/?q=Escaliers%20du%20March%C3%A9%20Lausanne",
-          "googleMaps": "https://www.google.com/maps/search/Escaliers%20du%20March%C3%A9%20Lausanne",
-          "website": null,
-          "notes": "Covered medieval stairway"
-        }
-      ]
+      "wishlist": []
     },
     {
       "id": "nice",
