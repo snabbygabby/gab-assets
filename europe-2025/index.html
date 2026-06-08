@@ -257,6 +257,20 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 .wish-keep-row input[type=checkbox] { width:14px; height:14px; accent-color:var(--sand); cursor:pointer; }
 .wish-keep-row label { font-size:12px; color:var(--ink-60); cursor:pointer; }
 
+/* PHOTO SEARCH */
+.photo-search-btn { background:none; border:none; cursor:pointer; font-size:10px; font-weight:600; color:var(--sand); padding:0 0 0 8px; font-family:'Inter',sans-serif; letter-spacing:.04em; transition:color .15s; }
+.photo-search-btn:hover { color:var(--ink); }
+.img-search-bar { display:flex; gap:8px; margin-bottom:10px; }
+.img-search-bar .form-input { flex:1; }
+.img-attr { font-size:9px; color:var(--ink-30); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.img-attr a { color:var(--ink-30); text-decoration:none; }
+.img-attr a:hover { color:var(--ink); text-decoration:underline; }
+.img-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; max-height:360px; overflow-y:auto; border-radius:3px; }
+.img-thumb { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:3px; cursor:pointer; border:2px solid transparent; transition:border-color .15s, transform .12s; display:block; background:var(--rule); }
+.img-thumb:hover { border-color:var(--sand); transform:scale(1.03); }
+.img-grid-msg { grid-column:1/-1; text-align:center; padding:36px 20px; font-size:12px; color:var(--ink-30); font-style:italic; line-height:1.7; }
+@media(max-width:600px){ .img-grid { grid-template-columns:repeat(2,1fr); max-height:260px; } }
+
 /* TOAST */
 .toast { position:fixed; bottom:92px; right:28px; z-index:500; background:var(--ink); color:#fff; padding:10px 18px; border-radius:3px; font-size:12px; box-shadow:var(--sh-md); transform:translateY(8px); opacity:0; transition:all .25s; pointer-events:none; }
 .toast.show { transform:translateY(0); opacity:1; }
@@ -407,7 +421,7 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
             <div class="form-field" id="f-menu-wrap"><label class="form-label">Menu URL</label><input class="form-input" id="f-menu" type="url" placeholder="https://…"></div>
           </div>
           <div class="form-row cols-2">
-            <div class="form-field"><label class="form-label">Photo URL</label><input class="form-input" id="f-photo" type="url" placeholder="https://…"></div>
+            <div class="form-field"><label class="form-label">Photo URL <button type="button" class="photo-search-btn" onclick="openImgSearch()">🔍 Search</button></label><input class="form-input" id="f-photo" type="url" placeholder="https://… or use search →"></div>
             <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="f-notes" type="text" placeholder="Any details…"></div>
           </div>
         </div>
@@ -495,6 +509,27 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
   </div>
 </div>
 
+<!-- IMAGE SEARCH MODAL -->
+<div class="modal-overlay" id="img-overlay" onclick="handleOverlayClick(event,'img-overlay')">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-head">
+      <div class="modal-title">Search Photos</div>
+      <button class="modal-close" onclick="closeModal('img-overlay')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="img-search-bar">
+        <input class="form-input" id="img-q" type="text" placeholder="Search photos…" onkeydown="if(event.key==='Enter')runImgSearch()" style="font-size:16px">
+        <button class="btn-primary" onclick="runImgSearch()">Search</button>
+      </div>
+      <div class="img-attr" id="img-attr"></div>
+      <div class="img-grid" id="img-grid"></div>
+      <div id="img-more-wrap" style="display:none;text-align:center;margin-top:12px">
+        <button class="btn-secondary" onclick="loadMoreImgs()">Load more</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -508,6 +543,57 @@ function getToken(){return localStorage.getItem('gh-pat');}
 function saveToken(){const v=document.getElementById('s-token').value.trim();if(!v)return showToast('Paste a token first',true);localStorage.setItem('gh-pat',v);showToast('Token saved ✓');closeModal('settings-overlay');}
 function clearToken(){localStorage.removeItem('gh-pat');document.getElementById('s-token').value='';showToast('Token cleared');}
 function openSettings(){const t=getToken();if(t)document.getElementById('s-token').value=t;document.getElementById('settings-overlay').classList.add('open');}
+
+// IMAGE SEARCH
+const IS={page:1,query:'',total:0};
+function openImgSearch(){
+  const name=document.getElementById('f-name').value.trim()||document.getElementById('f-cat').value;
+  IS.page=1;IS.query=name;
+  document.getElementById('img-q').value=name;
+  document.getElementById('img-grid').innerHTML='';
+  document.getElementById('img-attr').innerHTML='';
+  document.getElementById('img-more-wrap').style.display='none';
+  document.getElementById('img-overlay').classList.add('open');
+  if(name)_doImgSearch();
+}
+async function runImgSearch(){
+  const q=document.getElementById('img-q').value.trim();if(!q)return;
+  IS.query=q;IS.page=1;
+  document.getElementById('img-grid').innerHTML='<div class="img-grid-msg">Searching…</div>';
+  document.getElementById('img-more-wrap').style.display='none';
+  await _doImgSearch(true);
+}
+async function _doImgSearch(replace=false){
+  const grid=document.getElementById('img-grid');
+  const attr=document.getElementById('img-attr');
+  const moreWrap=document.getElementById('img-more-wrap');
+  const googleUrl=`https://www.google.com/search?q=${encodeURIComponent(IS.query)}&tbm=isch`;
+  try{
+    const res=await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(IS.query)}&page=${IS.page}&page_size=12&license_type=commercial`);
+    const data=await res.json();
+    if(replace||IS.page===1)grid.innerHTML='';
+    const results=data.results||[];
+    if(!results.length&&IS.page===1){
+      grid.innerHTML=`<div class="img-grid-msg">No photos found<br><a href="${googleUrl}" target="_blank" style="color:var(--sand);text-decoration:none;font-style:normal">Search Google Images ↗</a></div>`;
+      attr.innerHTML='';moreWrap.style.display='none';return;
+    }
+    results.forEach(r=>{
+      const img=document.createElement('img');img.className='img-thumb';img.loading='lazy';
+      img.src=r.thumbnail||r.url;img.alt=r.title||'';img.title=r.title||'';
+      img.onclick=()=>pickImg(r.url||r.thumbnail);
+      img.onerror=()=>img.remove();
+      grid.appendChild(img);
+    });
+    IS.total=data.result_count||0;
+    attr.innerHTML=`<span>Creative Commons photos via <a href="https://openverse.org" target="_blank">Openverse</a></span><a href="${googleUrl}" target="_blank">Google Images ↗</a>`;
+    moreWrap.style.display=IS.total>IS.page*12?'':'none';
+  }catch{
+    grid.innerHTML=`<div class="img-grid-msg">Search failed — <a href="${googleUrl}" target="_blank" style="color:var(--sand)">try Google Images ↗</a></div>`;
+  }
+}
+function pickImg(url){document.getElementById('f-photo').value=url;closeModal('img-overlay');showToast('Photo selected ✓');}
+async function loadMoreImgs(){IS.page++;await _doImgSearch();}
+
 
 // GITHUB API
 async function ghGet(){const token=getToken();const res=await fetch(`https://api.github.com/repos/${CFG.repo}/contents/${CFG.path}`,{headers:token?{Authorization:`token ${token}`}:{}});if(!res.ok)throw new Error(`GitHub ${res.status}`);return res.json();}
@@ -999,7 +1085,7 @@ function catEmoji(t){return{restaurant:'🍽',activity:'🌊',accommodation:'�
 
 // INIT
 loadData().catch(err=>{document.getElementById('main').innerHTML=`<div style="text-align:center;padding:80px 40px;font-size:13px;color:#BF3B3B">Could not load: ${err.message}</div>`;});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('add-overlay');closeModal('settings-overlay');closeModal('wish-overlay');}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('add-overlay');closeModal('settings-overlay');closeModal('wish-overlay');closeModal('img-overlay');}});
 </script>
 </body>
 </html>
