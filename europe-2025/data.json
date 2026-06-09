@@ -120,7 +120,8 @@
               "menu": null,
               "photo": "https://media-cdn.tripadvisor.com/media/photo-s/03/d4/1b/d3/eat-me-restaurant.jpg",
               "confirmationNumber": null,
-              "notes": null
+              "notes": null,
+              "mealSlot": "dinner"
             },
             {
               "id": "ev-1780943375774",
