@@ -333,6 +333,11 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .meals-restore { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
 .meal-restore-btn { background:none; border:1.5px solid var(--rule); border-radius:99px; padding:3px 11px; font-size:10px; font-weight:500; color:var(--ink-30); cursor:pointer; font-family:'Inter',sans-serif; transition:all .15s; }
 .meal-restore-btn:hover { border-color:var(--sand); color:var(--sand); }
+.meal-slot-handle { background:none; border:none; cursor:grab; font-size:13px; color:var(--ink-30); padding:0 5px 0 0; line-height:1; transition:color .15s; flex-shrink:0; }
+.meal-slot-handle:hover { color:var(--ink-60); }
+.meal-slot-handle:active { cursor:grabbing; }
+.slot-dragging { opacity:.35; pointer-events:none; }
+.meal-slot-sep { height:1px; background:var(--rule); margin:11px 0; }
 
 /* ACCOMMODATION BRIEF CARD — ≤1 night, sage green, horizontal like flight */
 .card.accom-brief { grid-column:1/-1; cursor:default; background:#EDF1ED; border-color:#A8BAA5; }
@@ -1477,55 +1482,66 @@ function renderDay(day){
   const mealsBar=el('div','meals-bar');
   const mealsInner=el('div','meals-bar-inner');
   const hiddenMealDefs=[];
-  MEAL_DEFS.forEach(def=>{
+  // Render slots in persisted order (default: coffee → lunch → dinner)
+  const mealOrder=getMealSlotOrder(day.id);
+  mealOrder.map(k=>MEAL_DEFS.find(d=>d.key===k)).filter(Boolean).forEach(def=>{
     if(!isMealSlotVisible(day.id,def.key)){hiddenMealDefs.push(def);return;}
-    const assigned=day.events.find(e=>e.mealSlot===def.key);
-    const slot=el('div','meal-slot'+(assigned?' filled':''));
-    // drag-over highlighting
-    slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('drag-over');});
-    slot.addEventListener('dragleave',()=>slot.classList.remove('drag-over'));
+    const assignedEvts=day.events.filter(e=>e.mealSlot===def.key);
+    const slot=el('div','meal-slot'+(assignedEvts.length?' filled':''));
+    // Slot drag — for reordering slots (only fires from the ⠿ handle)
+    slot.draggable=true;
+    slot.addEventListener('dragstart',e=>{
+      if(!e.target.closest('.meal-slot-handle')){e.preventDefault();return;}
+      e.dataTransfer.setData('text/plain','slot:'+def.key);e.dataTransfer.effectAllowed='move';
+      requestAnimationFrame(()=>slot.classList.add('slot-dragging'));
+    });
+    slot.addEventListener('dragend',()=>slot.classList.remove('slot-dragging'));
+    // Drop target: card assignment OR slot reorder
+    slot.addEventListener('dragover',e=>{e.preventDefault();if(!slot.classList.contains('slot-dragging'))slot.classList.add('drag-over');});
+    slot.addEventListener('dragleave',e=>{if(!slot.contains(e.relatedTarget))slot.classList.remove('drag-over');});
     slot.addEventListener('drop',async e=>{
       e.preventDefault();e.stopPropagation();slot.classList.remove('drag-over');
-      if(!dragSrc)return;const evId=dragSrc.dataset.id;if(!evId)return;
-      await assignMealSlot(day.id,evId,def.key);
+      const dt=e.dataTransfer.getData('text/plain');
+      if(dragSrc&&dt==='card'){const evId=dragSrc.dataset.id;if(evId)await assignMealSlot(day.id,evId,def.key);}
+      else if(dt.startsWith('slot:')){const fromKey=dt.slice(5);if(fromKey!==def.key)reorderMealSlots(day.id,fromKey,def.key);}
     });
+    // Header: ⠿ handle · emoji label · ×
     const head=el('div','meal-slot-head');
+    const handle=el('button','meal-slot-handle');handle.type='button';handle.title='Drag to reorder';handle.textContent='⠿';
     const lbl=el('span','meal-slot-lbl');lbl.textContent=`${def.emoji} ${def.label}`;
-    const xBtn=el('button','meal-slot-x');xBtn.type='button';xBtn.title=`Hide ${def.label} slot`;xBtn.textContent='×';
+    const xBtn=el('button','meal-slot-x');xBtn.type='button';xBtn.title='Hide slot';xBtn.textContent='×';
     xBtn.onclick=()=>hideMealSlot(day.id,def.key);
-    head.appendChild(lbl);head.appendChild(xBtn);slot.appendChild(head);
-    if(assigned){
-      // Horizontal card: thumbnail + info column
-      const content=el('div','meal-slot-content');
-      // Photo / emoji thumb
-      if(assigned.photo){const thumb=document.createElement('img');thumb.className='meal-slot-thumb';thumb.src=assigned.photo;thumb.alt=assigned.name;thumb.onerror=()=>{const ph=el('div','meal-slot-thumb-ph');ph.textContent=catEmoji(assigned.type);thumb.parentNode.replaceChild(ph,thumb);};content.appendChild(thumb);}
-      else{const ph=el('div','meal-slot-thumb-ph');ph.textContent=catEmoji(assigned.type);content.appendChild(ph);}
-      // Info
-      const info=el('div','meal-slot-info');
-      const nm=el('div','meal-slot-name');nm.textContent=assigned.name;info.appendChild(nm);
-      if(assigned.timeLabel||assigned.time){const tl=el('div','meal-slot-time');tl.textContent='✦ '+(assigned.timeLabel||assigned.time);info.appendChild(tl);}
-      if(assigned.address){const al=el('div','meal-slot-addr');al.textContent='📍 '+assigned.address;info.appendChild(al);}
-      // Links row
-      const linkDefs=[];
-      if(assigned.appleMaps)linkDefs.push({href:assigned.appleMaps,label:'🍎 Apple Maps'});
-      if(assigned.googleMaps)linkDefs.push({href:assigned.googleMaps,label:'📍 Google Maps'});
-      if(assigned.website)linkDefs.push({href:assigned.website,label:'↗ Website'});
-      if(assigned.menu)linkDefs.push({href:assigned.menu,label:'📋 Menu'});
-      if(linkDefs.length){const lr=el('div','meal-slot-links');linkDefs.forEach(lk=>{const a=document.createElement('a');a.href=lk.href;a.target='_blank';a.className='meal-slot-link';a.textContent=lk.label;lr.appendChild(a);});info.appendChild(lr);}
-      // Notes (all — pinned first, then unpinned)
-      const allNotes=assigned.notes&&assigned.notes.length?assigned.notes:(assigned.subtitle?[{text:assigned.subtitle,pinned:false}]:[]);
-      if(allNotes.length){const nd=el('div','meal-slot-notes');allNotes.forEach(n=>{const s=el('span','meal-slot-note');s.textContent=n.text;nd.appendChild(s);});info.appendChild(nd);}
-      content.appendChild(info);slot.appendChild(content);
-      // Unassign link
-      const un=el('button','meal-slot-unassign');un.type='button';un.textContent='Remove from slot';
-      un.onclick=async()=>{await assignMealSlot(day.id,assigned.id,null);};
-      slot.appendChild(un);
+    head.appendChild(handle);head.appendChild(lbl);head.appendChild(xBtn);slot.appendChild(head);
+    // Render each assigned restaurant
+    if(assignedEvts.length){
+      assignedEvts.forEach((ev,i)=>{
+        if(i>0){slot.appendChild(el('div','meal-slot-sep'));}
+        const content=el('div','meal-slot-content');
+        if(ev.photo){const thumb=document.createElement('img');thumb.className='meal-slot-thumb';thumb.src=ev.photo;thumb.alt=ev.name;thumb.onerror=()=>{const ph=el('div','meal-slot-thumb-ph');ph.textContent=catEmoji(ev.type);thumb.parentNode.replaceChild(ph,thumb);};content.appendChild(thumb);}
+        else{const ph=el('div','meal-slot-thumb-ph');ph.textContent=catEmoji(ev.type);content.appendChild(ph);}
+        const info=el('div','meal-slot-info');
+        const nm=el('div','meal-slot-name');nm.textContent=ev.name;info.appendChild(nm);
+        if(ev.timeLabel||ev.time){const tl=el('div','meal-slot-time');tl.textContent='✦ '+(ev.timeLabel||ev.time);info.appendChild(tl);}
+        if(ev.address){const al=el('div','meal-slot-addr');al.textContent='📍 '+ev.address;info.appendChild(al);}
+        const lkDefs=[];
+        if(ev.appleMaps)lkDefs.push({href:ev.appleMaps,label:'🍎 Apple Maps'});
+        if(ev.googleMaps)lkDefs.push({href:ev.googleMaps,label:'📍 Google Maps'});
+        if(ev.website)lkDefs.push({href:ev.website,label:'↗ Website'});
+        if(ev.menu)lkDefs.push({href:ev.menu,label:'📋 Menu'});
+        if(lkDefs.length){const lr=el('div','meal-slot-links');lkDefs.forEach(lk=>{const a=document.createElement('a');a.href=lk.href;a.target='_blank';a.className='meal-slot-link';a.textContent=lk.label;lr.appendChild(a);});info.appendChild(lr);}
+        const evNotes=ev.notes&&ev.notes.length?ev.notes:(ev.subtitle?[{text:ev.subtitle}]:[]);
+        if(evNotes.length){const nd=el('div','meal-slot-notes');evNotes.forEach(n=>{const s=el('span','meal-slot-note');s.textContent=n.text;nd.appendChild(s);});info.appendChild(nd);}
+        content.appendChild(info);slot.appendChild(content);
+        const un=el('button','meal-slot-unassign');un.type='button';un.textContent='Remove from slot';
+        un.onclick=async()=>assignMealSlot(day.id,ev.id,null);slot.appendChild(un);
+      });
     }else{
-      const emp=el('div','meal-slot-empty-txt');emp.textContent='Drag a restaurant here';
-      const addBtn=el('button','meal-slot-add-btn');addBtn.type='button';addBtn.textContent='+ Add';
-      addBtn.onclick=()=>openAddModal(day.id,def.key);
-      slot.appendChild(emp);slot.appendChild(addBtn);
+      const emp=el('div','meal-slot-empty-txt');emp.textContent='Drag a restaurant here, or:';slot.appendChild(emp);
     }
+    // + Add button always present
+    const addBtn=el('button','meal-slot-add-btn');addBtn.type='button';
+    addBtn.textContent=assignedEvts.length?'＋ Add another':'＋ Add';
+    addBtn.onclick=()=>openAddModal(day.id,def.key);slot.appendChild(addBtn);
     mealsInner.appendChild(slot);
   });
   mealsBar.appendChild(mealsInner);
@@ -1533,8 +1549,7 @@ function renderDay(day){
     const restoreRow=el('div','meals-restore');
     hiddenMealDefs.forEach(def=>{
       const btn=el('button','meal-restore-btn');btn.type='button';btn.textContent=`＋ ${def.emoji} ${def.label}`;
-      btn.onclick=()=>showMealSlot(day.id,def.key);
-      restoreRow.appendChild(btn);
+      btn.onclick=()=>showMealSlot(day.id,def.key);restoreRow.appendChild(btn);
     });
     mealsBar.appendChild(restoreRow);
   }
@@ -1632,6 +1647,9 @@ function saveMealSlots(dayId,s){try{localStorage.setItem(`ms-${dayId}`,JSON.stri
 function isMealSlotVisible(dayId,key){const s=getMealSlots(dayId);return s[key]!==false;}
 function hideMealSlot(dayId,key){const s=getMealSlots(dayId);s[key]=false;saveMealSlots(dayId,s);rerenderDay(dayId);}
 function showMealSlot(dayId,key){const s=getMealSlots(dayId);s[key]=true;saveMealSlots(dayId,s);rerenderDay(dayId);}
+function getMealSlotOrder(dayId){try{const o=JSON.parse(localStorage.getItem(`mso-${dayId}`)||'[]');const v=o.filter(k=>MEAL_DEFS.some(d=>d.key===k));MEAL_DEFS.forEach(d=>{if(!v.includes(d.key))v.push(d.key);});return v;}catch{return MEAL_DEFS.map(d=>d.key);}}
+function saveMealSlotOrder(dayId,order){try{localStorage.setItem(`mso-${dayId}`,JSON.stringify(order));}catch{}}
+function reorderMealSlots(dayId,fromKey,toKey){const o=getMealSlotOrder(dayId);const fi=o.indexOf(fromKey),ti=o.indexOf(toKey);if(fi<0||ti<0)return;o.splice(fi,1);o.splice(ti,0,fromKey);saveMealSlotOrder(dayId,o);rerenderDay(dayId);}
 function rerenderDay(dayId){
   if(!S.data)return;
   let dayData=null;for(const dest of S.data.destinations){dayData=dest.days.find(d=>d.id===dayId);if(dayData)break;}
