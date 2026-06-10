@@ -329,7 +329,7 @@
               "type": "restaurant",
               "category": "Restaurant",
               "name": "La Colombe d'Or",
-              "subtitle": "Lunch reservation for 2 people. Arrival at 12:30. Bar opens at 12:00, kitchen closes at 14:00. Contact: Martin. Restaurant phone: +33 493 32 80 02. Gabby's mobile: +1 847 494 4401.",
+              "subtitle": null,
               "time": "12:30 PM",
               "timeLabel": null,
               "address": "Place de Gaulle, 06570 Saint-Paul de Vence, France",
@@ -339,7 +339,15 @@
               "menu": null,
               "photo": "https://static.seetheworld.com/image_uploader/photos/b0/original/la-colombe-d-or-restaurant-st-paul-de-vence-terrace.jpg?ua=1767168725",
               "confirmationNumber": null,
-              "notes": null
+              "nights": null,
+              "mealSlot": "lunch",
+              "notes": [
+                {
+                  "id": "n-mq89jivi09y",
+                  "text": "Lunch reservation for 2 people. Arrival at 12:30. Bar opens at 12:00, kitchen closes at 14:00. Contact: Martin. Restaurant phone: +33 493 32 80 02. Gabby's mobile: +1 847 494 4401.",
+                  "pinned": false
+                }
+              ]
             }
           ]
         },
