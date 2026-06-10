@@ -139,10 +139,10 @@
               "photo": "https://media-cdn.tripadvisor.com/media/photo-s/03/d4/1b/d3/eat-me-restaurant.jpg",
               "confirmationNumber": null,
               "nights": null,
-              "mealSlot": null,
+              "mealSlot": "dinner",
               "notes": [
                 {
-                  "id": "n-mq893ktwe1r",
+                  "id": "n-mq89jtd8b5l",
                   "text": "Reservation for 2 guests. Phone: +41 21 311 76 59",
                   "pinned": false
                 }
