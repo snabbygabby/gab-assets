@@ -106,24 +106,6 @@
           "joinSub": null,
           "events": [
             {
-              "id": "email-1780881500780-jc3",
-              "type": "restaurant",
-              "category": "Restaurant",
-              "name": "Eat Me - Lausanne",
-              "subtitle": "Reservation for 2 guests. Phone: +41 21 311 76 59",
-              "time": "8:30 PM – 10:30 PM",
-              "timeLabel": null,
-              "address": "Rue Pépinet 3, 1003 Lausanne",
-              "appleMaps": "https://maps.apple.com/?address=Rue%20P%C3%A9pinet%203%2C%201003%20Lausanne&q=Eat%20Me%20-%20Lausanne",
-              "googleMaps": "https://www.google.com/maps/search/Rue%20P%C3%A9pinet%203%2C%201003%20Lausanne",
-              "website": null,
-              "menu": null,
-              "photo": "https://media-cdn.tripadvisor.com/media/photo-s/03/d4/1b/d3/eat-me-restaurant.jpg",
-              "confirmationNumber": null,
-              "notes": null,
-              "mealSlot": null
-            },
-            {
               "id": "ev-1780943375774",
               "type": "activity",
               "category": "Activity",
@@ -140,6 +122,31 @@
               "confirmationNumber": null,
               "nights": null,
               "notes": null
+            },
+            {
+              "id": "email-1780881500780-jc3",
+              "type": "restaurant",
+              "category": "Restaurant",
+              "name": "Eat Me - Lausanne",
+              "subtitle": null,
+              "time": "8:30 PM – 10:30 PM",
+              "timeLabel": null,
+              "address": "Rue Pépinet 3, 1003 Lausanne",
+              "appleMaps": "https://maps.apple.com/?address=Rue%20P%C3%A9pinet%203%2C%201003%20Lausanne&q=Eat%20Me%20-%20Lausanne",
+              "googleMaps": "https://www.google.com/maps/search/Rue%20P%C3%A9pinet%203%2C%201003%20Lausanne",
+              "website": null,
+              "menu": null,
+              "photo": "https://media-cdn.tripadvisor.com/media/photo-s/03/d4/1b/d3/eat-me-restaurant.jpg",
+              "confirmationNumber": null,
+              "nights": null,
+              "mealSlot": "dinner",
+              "notes": [
+                {
+                  "id": "n-mq893ktwe1r",
+                  "text": "Reservation for 2 guests. Phone: +41 21 311 76 59",
+                  "pinned": false
+                }
+              ]
             }
           ],
           "note": "Winery Day?"
@@ -396,25 +403,7 @@
           "join": true,
           "joinTitle": "Olivia & Anna arrive in Nice",
           "joinSub": "All four travelers together on the Riviera through July 22",
-          "events": [
-            {
-              "id": "email-1781106945107-c99",
-              "type": "accommodation",
-              "category": "Accommodation",
-              "name": "Hôtel Le Sud",
-              "subtitle": "Departure: Jul 22, 2026 (4 nights). Superior Triple Room, 3 adults. Best Available Rate Flexible | Room Only. Total: €1,247.14. Cancellation: free up to 3 days before arrival for most periods (see T&C for exceptions). No deposit at booking. Part of Europe trip (Nice, Jul 13–22).",
-              "time": null,
-              "timeLabel": null,
-              "address": null,
-              "appleMaps": null,
-              "googleMaps": null,
-              "website": null,
-              "menu": null,
-              "photo": null,
-              "confirmationNumber": "29302",
-              "notes": null
-            }
-          ]
+          "events": []
         },
         {
           "id": "2026-07-19",
