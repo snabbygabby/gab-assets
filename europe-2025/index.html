@@ -545,7 +545,7 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
 </nav>
 
 <div id="token-warn" style="display:none;background:#BF3B3B;color:#fff;text-align:center;padding:9px 20px;font-size:12px;font-weight:500;position:sticky;top:46px;z-index:199;cursor:pointer;letter-spacing:.02em" onclick="openSettings()">
-  ⚠ GitHub token expired — tap here to paste a new one so changes can save
+  ⚠ GitHub token issue — tap here to fix it so changes can save
 </div>
 
 <main id="main"><div style="text-align:center;padding:80px 40px;font-size:13px;color:var(--ink-60)">Loading itinerary…</div></main>
@@ -691,10 +691,12 @@ footer { text-align:center; padding:64px 40px 80px; border-top:1px solid var(--r
     <div class="modal-body">
       <div class="settings-section">
         <div class="settings-heading">GitHub Token</div>
-        <div class="settings-body">Required to add, edit, or delete events. Generate a fine-grained token at <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens</a> with <code>Contents: Read & Write</code> on <code>snabbygabby/gab-assets</code>.</div>
-        <div class="form-field" style="margin-bottom:12px"><label class="form-label">Personal Access Token</label><input class="form-input" id="s-token" type="password" placeholder="github_pat_…"></div>
+        <div class="settings-body">Required to save changes. Generate a <strong>fine-grained</strong> token at <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens</a> — set <strong>Repository access → Only select repositories → snabbygabby/gab-assets</strong>, then under Permissions set <strong>Contents: Read and write</strong>.</div>
+        <div class="form-field" style="margin-bottom:8px"><label class="form-label">Personal Access Token</label><input class="form-input" id="s-token" type="password" placeholder="github_pat_…" oninput="document.getElementById('s-tok-status').textContent=''"></div>
+        <div id="s-tok-status" style="font-size:11px;min-height:18px;margin-bottom:10px;font-weight:500;"></div>
         <div class="settings-actions">
-          <button class="btn-primary" onclick="saveToken()">Save Token</button>
+          <button class="btn-primary" onclick="saveToken()">Save</button>
+          <button class="btn-secondary" onclick="testToken()">Test connection →</button>
           <button class="btn-secondary" onclick="clearToken()">Clear</button>
         </div>
       </div>
@@ -744,8 +746,35 @@ const EXPLORE_CHIPS=[
 // TOKEN
 function getToken(){return localStorage.getItem('gh-pat');}
 function saveToken(){const v=document.getElementById('s-token').value.trim();if(!v)return showToast('Paste a token first',true);localStorage.setItem('gh-pat',v);document.getElementById('token-warn').style.display='none';showToast('Token saved ✓');closeModal('settings-overlay');}
-function clearToken(){localStorage.removeItem('gh-pat');document.getElementById('s-token').value='';showToast('Token cleared');}
-function openSettings(){const t=getToken();if(t)document.getElementById('s-token').value=t;document.getElementById('settings-overlay').classList.add('open');}
+function clearToken(){localStorage.removeItem('gh-pat');document.getElementById('s-token').value='';document.getElementById('s-tok-status').textContent='';showToast('Token cleared');}
+function openSettings(){
+  const t=getToken();
+  const inp=document.getElementById('s-token');
+  if(t)inp.value=t;
+  document.getElementById('s-tok-status').textContent='';
+  document.getElementById('settings-overlay').classList.add('open');
+}
+async function testToken(){
+  const status=document.getElementById('s-tok-status');
+  const tokenToTest=document.getElementById('s-token').value.trim()||getToken();
+  if(!tokenToTest){status.style.color='#BF3B3B';status.textContent='⚠ No token — paste one above first.';return;}
+  status.style.color='var(--ink-30)';status.textContent='Testing…';
+  try{
+    // Step 1: check the token itself is valid
+    const r1=await fetch('https://api.github.com/user',{headers:{Authorization:`token ${tokenToTest}`}});
+    if(r1.status===401){status.style.color='#BF3B3B';status.textContent='✗ Invalid token — GitHub says "bad credentials". Re-generate a new token at github.com/settings/tokens.';return;}
+    // Step 2: check repo access
+    const r2=await fetch(`https://api.github.com/repos/${CFG.repo}`,{headers:{Authorization:`token ${tokenToTest}`}});
+    if(r2.status===404||r2.status===403){status.style.color='#BF3B3B';status.textContent='✗ Token can\'t read the repo. Make sure you selected snabbygabby/gab-assets under "Repository access".';return;}
+    // Step 3: check write access by reading contents
+    const r3=await fetch(`https://api.github.com/repos/${CFG.repo}/contents/${CFG.path}`,{headers:{Authorization:`token ${tokenToTest}`}});
+    if(!r3.ok){status.style.color='#BF3B3B';status.textContent=`✗ Can read repo but not the data file (${r3.status}). Check Contents permission is set to Read and write.`;return;}
+    const perms=(await r2.json()).permissions||{};
+    if(!perms.push){status.style.color='#e08000';status.textContent='⚠ Token can read but may not have write permission. Set Contents → Read and write in the token settings.';return;}
+    status.style.color='#2d7a2d';status.textContent='✓ Token works! Read + write access confirmed. Hit Save.';
+    document.getElementById('token-warn').style.display='none';
+  }catch(err){status.style.color='#BF3B3B';status.textContent='✗ Network error: '+err.message;}
+}
 
 // IMAGE SEARCH
 const IS={page:1,query:'',total:0};
@@ -1799,12 +1828,14 @@ function catEmoji(t){return{restaurant:'🍽',activity:'🌊',accommodation:'�
 // INIT
 loadData().catch(err=>{document.getElementById('main').innerHTML=`<div style="text-align:center;padding:80px 40px;font-size:13px;color:#BF3B3B">Could not load: ${err.message}</div>`;});
 
-// Validate token on load — show banner immediately if expired
+// Validate token on load — show banner if there's an issue
 (async function checkToken(){
   const token=getToken();if(!token)return;
   try{
-    const res=await fetch(`https://api.github.com/repos/${CFG.repo}`,{headers:{Authorization:`token ${token}`}});
-    if(res.status===401||res.status===403)document.getElementById('token-warn').style.display='';
+    const r1=await fetch('https://api.github.com/user',{headers:{Authorization:`token ${token}`}});
+    if(r1.status===401){document.getElementById('token-warn').style.display='';document.getElementById('token-warn').textContent='⚠ GitHub token is invalid or expired — tap here to paste a new one';return;}
+    const r2=await fetch(`https://api.github.com/repos/${CFG.repo}/contents/${CFG.path}`,{headers:{Authorization:`token ${token}`}});
+    if(!r2.ok){document.getElementById('token-warn').style.display='';document.getElementById('token-warn').textContent='⚠ GitHub token can\'t access the repo — tap here to fix permissions';}
   }catch{}
 })();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('add-overlay');closeModal('settings-overlay');closeModal('wish-overlay');closeModal('img-overlay');hidePicksPopup();}});
