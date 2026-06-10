@@ -396,7 +396,25 @@
           "join": true,
           "joinTitle": "Olivia & Anna arrive in Nice",
           "joinSub": "All four travelers together on the Riviera through July 22",
-          "events": []
+          "events": [
+            {
+              "id": "email-1781106945107-c99",
+              "type": "accommodation",
+              "category": "Accommodation",
+              "name": "Hôtel Le Sud",
+              "subtitle": "Departure: Jul 22, 2026 (4 nights). Superior Triple Room, 3 adults. Best Available Rate Flexible | Room Only. Total: €1,247.14. Cancellation: free up to 3 days before arrival for most periods (see T&C for exceptions). No deposit at booking. Part of Europe trip (Nice, Jul 13–22).",
+              "time": null,
+              "timeLabel": null,
+              "address": null,
+              "appleMaps": null,
+              "googleMaps": null,
+              "website": null,
+              "menu": null,
+              "photo": null,
+              "confirmationNumber": "29302",
+              "notes": null
+            }
+          ]
         },
         {
           "id": "2026-07-19",
