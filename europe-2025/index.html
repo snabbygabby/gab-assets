@@ -314,9 +314,22 @@ body { font-family:'Inter',-apple-system,sans-serif; font-size:13px; line-height
 .meal-slot-empty-txt { font-size:11px; color:var(--ink-30); line-height:1.4; margin-bottom:8px; }
 .meal-slot-add-btn { background:none; border:1.5px dashed var(--rule); border-radius:5px; padding:4px 0; font-size:10.5px; color:var(--ink-30); cursor:pointer; font-family:'Inter',sans-serif; transition:all .15s; width:100%; letter-spacing:.02em; }
 .meal-slot-add-btn:hover { border-color:var(--sand); color:var(--sand); }
-.meal-slot-name { font-size:12.5px; font-weight:500; color:var(--ink); line-height:1.3; margin-bottom:5px; }
-.meal-slot-unassign { font-size:9.5px; color:var(--ink-30); cursor:pointer; background:none; border:none; font-family:'Inter',sans-serif; padding:0; transition:color .15s; text-decoration:underline; text-underline-offset:2px; letter-spacing:.01em; }
-.meal-slot-unassign:hover { color:var(--sand); }
+/* filled meal slot — horizontal card layout */
+.meal-slot-content { display:flex; gap:10px; align-items:flex-start; }
+.meal-slot-thumb { width:46px; height:46px; border-radius:6px; object-fit:cover; flex-shrink:0; }
+.meal-slot-thumb-ph { width:46px; height:46px; border-radius:6px; background:var(--rule); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.meal-slot-info { flex:1; min-width:0; }
+.meal-slot-name { font-size:12.5px; font-weight:600; color:var(--ink); line-height:1.25; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.meal-slot-time { font-size:10.5px; color:var(--sand); font-weight:500; margin-bottom:2px; }
+.meal-slot-addr { font-size:10px; color:var(--ink-30); line-height:1.3; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.meal-slot-links { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:5px; }
+.meal-slot-link { font-size:9.5px; color:var(--ink-60); text-decoration:none; border:1px solid var(--rule); border-radius:4px; padding:2px 7px; transition:all .15s; white-space:nowrap; }
+.meal-slot-link:hover { border-color:var(--sand); color:var(--sand); }
+.meal-slot-notes { display:flex; flex-wrap:wrap; column-gap:10px; row-gap:1px; }
+.meal-slot-note { font-size:10px; color:var(--ink-60); line-height:1.4; padding-left:10px; position:relative; }
+.meal-slot-note::before { content:'·'; position:absolute; left:1px; color:var(--sand); font-weight:700; }
+.meal-slot-unassign { display:block; margin-top:7px; font-size:9px; color:var(--ink-30); cursor:pointer; background:none; border:none; font-family:'Inter',sans-serif; padding:0; transition:color .15s; text-decoration:underline; text-underline-offset:2px; letter-spacing:.02em; text-transform:uppercase; }
+.meal-slot-unassign:hover { color:#c0392b; }
 .meals-restore { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
 .meal-restore-btn { background:none; border:1.5px solid var(--rule); border-radius:99px; padding:3px 11px; font-size:10px; font-weight:500; color:var(--ink-30); cursor:pointer; font-family:'Inter',sans-serif; transition:all .15s; }
 .meal-restore-btn:hover { border-color:var(--sand); color:var(--sand); }
@@ -1453,10 +1466,31 @@ function renderDay(day){
     xBtn.onclick=()=>hideMealSlot(day.id,def.key);
     head.appendChild(lbl);head.appendChild(xBtn);slot.appendChild(head);
     if(assigned){
-      const nm=el('div','meal-slot-name');nm.textContent=assigned.name;
+      // Horizontal card: thumbnail + info column
+      const content=el('div','meal-slot-content');
+      // Photo / emoji thumb
+      if(assigned.photo){const thumb=document.createElement('img');thumb.className='meal-slot-thumb';thumb.src=assigned.photo;thumb.alt=assigned.name;thumb.onerror=()=>{const ph=el('div','meal-slot-thumb-ph');ph.textContent=catEmoji(assigned.type);thumb.parentNode.replaceChild(ph,thumb);};content.appendChild(thumb);}
+      else{const ph=el('div','meal-slot-thumb-ph');ph.textContent=catEmoji(assigned.type);content.appendChild(ph);}
+      // Info
+      const info=el('div','meal-slot-info');
+      const nm=el('div','meal-slot-name');nm.textContent=assigned.name;info.appendChild(nm);
+      if(assigned.timeLabel||assigned.time){const tl=el('div','meal-slot-time');tl.textContent='✦ '+(assigned.timeLabel||assigned.time);info.appendChild(tl);}
+      if(assigned.address){const al=el('div','meal-slot-addr');al.textContent='📍 '+assigned.address;info.appendChild(al);}
+      // Links row
+      const linkDefs=[];
+      if(assigned.appleMaps)linkDefs.push({href:assigned.appleMaps,label:'🍎 Apple Maps'});
+      if(assigned.googleMaps)linkDefs.push({href:assigned.googleMaps,label:'📍 Google Maps'});
+      if(assigned.website)linkDefs.push({href:assigned.website,label:'↗ Website'});
+      if(assigned.menu)linkDefs.push({href:assigned.menu,label:'📋 Menu'});
+      if(linkDefs.length){const lr=el('div','meal-slot-links');linkDefs.forEach(lk=>{const a=document.createElement('a');a.href=lk.href;a.target='_blank';a.className='meal-slot-link';a.textContent=lk.label;lr.appendChild(a);});info.appendChild(lr);}
+      // Notes (all — pinned first, then unpinned)
+      const allNotes=assigned.notes&&assigned.notes.length?assigned.notes:(assigned.subtitle?[{text:assigned.subtitle,pinned:false}]:[]);
+      if(allNotes.length){const nd=el('div','meal-slot-notes');allNotes.forEach(n=>{const s=el('span','meal-slot-note');s.textContent=n.text;nd.appendChild(s);});info.appendChild(nd);}
+      content.appendChild(info);slot.appendChild(content);
+      // Unassign link
       const un=el('button','meal-slot-unassign');un.type='button';un.textContent='Remove from slot';
       un.onclick=async()=>{await assignMealSlot(day.id,assigned.id,null);};
-      slot.appendChild(nm);slot.appendChild(un);
+      slot.appendChild(un);
     }else{
       const emp=el('div','meal-slot-empty-txt');emp.textContent='Drag a restaurant here';
       const addBtn=el('button','meal-slot-add-btn');addBtn.type='button';addBtn.textContent='+ Add';
