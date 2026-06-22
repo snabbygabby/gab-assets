@@ -417,7 +417,7 @@
               "type": "accommodation",
               "category": "Accommodation",
               "name": "Hôtel Le Sud",
-              "subtitle": "Departure: Jul 22, 2026. Superior Triple Room, 3 adults. Best Available Rate Flexible | Room Only. Total: €1,247.14. Cancellation: free up to 3 days before arrival for most periods (see terms). No deposit at booking. Part of Europe trip (Nice, Jul 13–22).",
+              "subtitle": null,
               "time": null,
               "timeLabel": null,
               "address": null,
@@ -425,9 +425,17 @@
               "googleMaps": null,
               "website": null,
               "menu": null,
-              "photo": null,
+              "photo": "https://live.staticflickr.com/4041/4255628625_6f05f8f47b_b.jpg",
               "confirmationNumber": "29302",
-              "notes": null
+              "nights": null,
+              "mealSlot": null,
+              "notes": [
+                {
+                  "id": "n-mqpi2xcudjy",
+                  "text": "Departure: Jul 22, 2026. Superior Triple Room, 3 adults. Best Available Rate Flexible | Room Only. Total: €1,247.14. Cancellation: free up to 3 days before arrival for most periods (see terms). No deposit at booking. Part of Europe trip (Nice, Jul 13–22).",
+                  "pinned": false
+                }
+              ]
             }
           ]
         },
